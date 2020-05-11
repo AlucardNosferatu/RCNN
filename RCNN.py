@@ -99,7 +99,7 @@ def data_generator():
         try:
             if i.startswith("airplane"):
                 filename = i.split(".")[0]+".jpg"
-                #print(e,filename)
+                print(e,filename)
                 image = cv2.imread(os.path.join(path,filename))
                 df = pd.read_csv(os.path.join(annot,i))
                 gtvalues=[]
@@ -154,7 +154,9 @@ def data_generator():
     pickle.dump(train_labels, TL_PKL)
     TI_PKL.close()
     TL_PKL.close()
-    return train_images, train_labels
+    X_new = np.array(train_images)
+    y_new = np.array(train_labels)
+    return X_new,y_new
 
 def data_loader():
     TI_PKL = open('train_images.pkl', 'rb')
@@ -167,7 +169,7 @@ def data_loader():
     y_new = np.array(train_labels)
     return X_new,y_new
 
-def train(NewModel=False):
+def train(NewModel=False,GenData=False):
 
     if(NewModel):
         vggmodel = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
@@ -185,7 +187,10 @@ def train(NewModel=False):
     else:
         model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
 
-    X_new, y_new = data_loader()
+    if(GenData):
+        X_new, y_new = data_generator()
+    else:
+        X_new, y_new = data_loader()
 
     lenc = MyLabelBinarizer()
     Y =  lenc.fit_transform(y_new)
@@ -252,13 +257,15 @@ def test_model():
     lenc = MyLabelBinarizer()
     Y =  lenc.fit_transform(y_new)
     X_train, X_test , y_train, y_test = train_test_split(X_new,Y,test_size=0.10)
-    im = X_test[1600]
-    plt.imshow(im)
-    img = np.expand_dims(im, axis=0)
-    out= model_final.predict(img)
-    if out[0][0] > out[0][1]:
-        print("plane")
-    else:
-        print("not plane")
-
-train()
+    for test in X_test:
+        im = test
+        plt.imshow(im)
+        img = np.expand_dims(im, axis=0)
+        out= model_final.predict(img)
+        
+        if out[0][0] > out[0][1]:
+            print("plane")
+        else:
+            print("not plane")
+        plt.show()
+test_model()
