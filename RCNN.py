@@ -72,20 +72,15 @@ def get_iou(bb1, bb2):
     assert bb1['y1'] < bb1['y2']
     assert bb2['x1'] < bb2['x2']
     assert bb2['y1'] < bb2['y2']
-
     x_left = max(bb1['x1'], bb2['x1'])
     y_top = max(bb1['y1'], bb2['y1'])
     x_right = min(bb1['x2'], bb2['x2'])
     y_bottom = min(bb1['y2'], bb2['y2'])
-
     if x_right < x_left or y_bottom < y_top:
         return 0.0
-
     intersection_area = (x_right - x_left) * (y_bottom - y_top)
-
     bb1_area = (bb1['x2'] - bb1['x1']) * (bb1['y2'] - bb1['y1'])
     bb2_area = (bb2['x2'] - bb2['x1']) * (bb2['y2'] - bb2['y1'])
-
     iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
     assert iou >= 0.0
     assert iou <= 1.0
@@ -96,8 +91,10 @@ def data_generator():
     train_labels=[]
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     for e,i in enumerate(os.listdir(annot)):
+        # 对每一个标记文件（csv）进行操作
         try:
             if i.startswith("airplane"):
+                #只有名称带airplane才是有目标的存在的样本
                 filename = i.split(".")[0]+".jpg"
                 print(e,filename)
                 image = cv2.imread(os.path.join(path,filename))
@@ -109,9 +106,13 @@ def data_generator():
                     x2 = int(row[1][0].split(" ")[2])
                     y2 = int(row[1][0].split(" ")[3])
                     gtvalues.append({"x1":x1,"x2":x2,"y1":y1,"y2":y2})
+                    #把标签的坐标数据存入gtvalues
+
                 ss.setBaseImage(image)
                 ss.switchToSelectiveSearchFast()
                 ssresults = ss.process()
+                #加载SS ROI提出器
+
                 imout = image.copy()
                 counter = 0
                 falsecounter = 0
@@ -120,11 +121,16 @@ def data_generator():
                 bflag = 0
                 for e,result in enumerate(ssresults):
                     if e < 2000 and flag == 0:
+                        #对SS产生的头2k个结果（坐标）进行处理
                         for gtval in gtvalues:
+                            #对这张图上多个标签坐标进行处理
                             x,y,w,h = result
                             iou = get_iou(gtval,{"x1":x,"x2":x+w,"y1":y,"y2":y+h})
+                            #计算候选坐标和这一标签坐标的交并比
                             if counter < 30:
+                                #选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
+                                    #交并比阈值0.7
                                     timage = imout[y:y+h,x:x+w]
                                     resized = cv2.resize(timage, (224,224), interpolation = cv2.INTER_AREA)
                                     train_images.append(resized)
@@ -133,6 +139,7 @@ def data_generator():
                             else :
                                 fflag =1
                             if falsecounter <30:
+                                #IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
                                     timage = imout[y:y+h,x:x+w]
                                     resized = cv2.resize(timage, (224,224), interpolation = cv2.INTER_AREA)
@@ -170,7 +177,6 @@ def data_loader():
     return X_new,y_new
 
 def train(NewModel=False,GenData=False):
-
     if(NewModel):
         vggmodel = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
         for layers in (vggmodel.layers)[:15]:
@@ -251,9 +257,9 @@ def train(NewModel=False,GenData=False):
     plt.show()
     plt.savefig('chart loss.png')
 
-def test_model():
+def test_model_cl():
     model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
-    X_new, y_new = data_loader()
+    X_new, y_new = data_generator()
     lenc = MyLabelBinarizer()
     Y =  lenc.fit_transform(y_new)
     X_train, X_test , y_train, y_test = train_test_split(X_new,Y,test_size=0.10)
@@ -268,4 +274,33 @@ def test_model():
         else:
             print("not plane")
         plt.show()
-test_model()
+
+def test_model_od():
+    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+    model_loaded = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    z=0
+    for e,i in enumerate(os.listdir(path)):
+        if i.startswith("4"):
+            z += 1
+            img = cv2.imread(os.path.join(path,i))
+            imout = img.copy()
+
+            # Selective Search will be replaced by ROI proposal
+            ss.setBaseImage(img)
+            ss.switchToSelectiveSearchFast()
+            ssresults = ss.process()
+
+            for e,result in enumerate(ssresults):
+                if e < 2000:
+                    x,y,w,h = result
+                    timage = imout[y:y+h,x:x+w]
+                    resized = cv2.resize(timage, (224,224), interpolation = cv2.INTER_AREA)
+                    img = np.expand_dims(resized, axis=0)
+                    out= model_loaded.predict(img)
+                    if out[0][0] > 0.65:
+                        cv2.rectangle(imout, (x, y), (x+w, y+h), (0, 255, 0), 1, cv2.LINE_AA)
+            plt.figure()
+            plt.imshow(imout)
+            plt.show()
+
+data_generator()
