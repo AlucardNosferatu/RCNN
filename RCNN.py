@@ -259,7 +259,7 @@ def train(NewModel=False,GenData=False):
 
 def test_model_cl():
     model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
-    X_new, y_new = data_generator()
+    X_new, y_new = data_loader()
     lenc = MyLabelBinarizer()
     Y =  lenc.fit_transform(y_new)
     X_train, X_test , y_train, y_test = train_test_split(X_new,Y,test_size=0.10)
@@ -270,9 +270,9 @@ def test_model_cl():
         out= model_final.predict(img)
         
         if out[0][0] > out[0][1]:
-            print("plane")
+            print(str(out)+" "+"plane")
         else:
-            print("not plane")
+            print(str(out)+" "+"not plane")
         plt.show()
 
 def test_model_od():
@@ -303,4 +303,4 @@ def test_model_od():
             plt.imshow(imout)
             plt.show()
 
-data_generator()
+test_model_cl()
