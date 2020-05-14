@@ -1,5 +1,5 @@
 
 Airplanes_Annotations/
 Images/
-ieeercnn_vgg16_1.h5
 train_images.pkl
+*.h5
