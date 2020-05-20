@@ -33,7 +33,7 @@ class MyLabelBinarizer(LabelBinarizer):
 
 
 EP = 100
-BS = 1
+BS = 8
 pooled_square_size = 7
 path = "Images"
 annotation = "Airplanes_Annotations"
@@ -150,6 +150,7 @@ def process_annot_file(i):
 
 
 def data_cleaner(X, y):
+    # TODO: Need more strict filter to deal with data like (x1=4.5 x2=5.1)
     th = 1 / 14
     i = 0
     length = len(X)
@@ -265,8 +266,7 @@ def build_model():
         x = Dense(64, activation='relu')(x)
         cls_result.append(x)
 
-    x = Add()(cls_result)
-
+    x = tf.concat(cls_result, axis=1)
     x = Dense(2, activation="softmax")(x)
 
     model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
