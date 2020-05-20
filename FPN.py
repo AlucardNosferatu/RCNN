@@ -1,20 +1,20 @@
-import os, cv2
+import cv2
+import os
+import pickle
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, Add, UpSampling2D, Input
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras import Model, optimizers
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
+from tensorflow.keras import Model
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D, Input
+from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 
 from ROI_Pooling import RoiPoolingConv
-import matplotlib.pyplot as plt
-import pickle
 
 
 class MyLabelBinarizer(LabelBinarizer):
@@ -322,7 +322,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         hist = model_final.fit(
             [x_images, x_rois],
             y,
-            verbose=0,
+            verbose=1,
             epochs=EP,
             batch_size=BS,
             callbacks=[checkpoint]
@@ -331,11 +331,11 @@ def train(NewModel=False, GenData=False, UseFPN=True):
 
 def test_model_cl():
     model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
-    X_new, y_new = data_loader()
-    lenc = MyLabelBinarizer()
-    Y = lenc.fit_transform(y_new)
-    X_train, X_test, y_train, y_test = train_test_split(X_new, Y, test_size=0.10)
-    for test in X_test:
+    x_new, y_new = data_loader()
+    one_hot = MyLabelBinarizer()
+    y = one_hot.fit_transform(y_new)
+    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
+    for test in x_test:
         im = test
         plt.imshow(im)
         img = np.expand_dims(im, axis=0)
@@ -377,4 +377,4 @@ def test_model_od():
             plt.show()
 
 
-train(NewModel=False)
+train()
