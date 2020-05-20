@@ -10,11 +10,11 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
+from tqdm import tqdm
+
 from ROI_Pooling import RoiPoolingConv
 import matplotlib.pyplot as plt
 import pickle
-
-tf.compat.v1.disable_eager_execution()
 
 
 class MyLabelBinarizer(LabelBinarizer):
@@ -32,8 +32,11 @@ class MyLabelBinarizer(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
+EP = 100
+BS = 1
+pooled_square_size = 7
 path = "Images"
-annot = "Airplanes_Annotations"
+annotation = "Airplanes_Annotations"
 
 
 def get_iou(bb1, bb2):
@@ -56,96 +59,141 @@ def get_iou(bb1, bb2):
     return iou
 
 
+def process_roi_to_data(imout, train_images, train_labels, counter, c, pos=True):
+    resized = cv2.resize(imout, (224, 224), interpolation=cv2.INTER_AREA)
+    train_images.append([resized.reshape((224, 224, 3)), np.array([
+        float(c[0]) / 256,
+        float(c[1]) / 256,
+        float(c[2]) / 256,
+        float(c[3]) / 256
+    ]).reshape((1, 4))])
+    if pos:
+        train_labels.append(1)
+    else:
+        train_labels.append(0)
+    counter += 1
+    return counter, train_images, train_labels
+
+
+def process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout):
+    counter = 0
+    falsecounter = 0
+    flag = 0
+    fflag = 0
+    bflag = 0
+    e_for_test = 0
+    for gtval in gtvalues:
+        print(gtval)
+        for e, result in enumerate(ssresults):
+            e_for_test = e
+            if e < 2000 and flag == 0:
+                x, y, w, h = result
+                x1 = x
+                y1 = y
+                x2 = x1 + w
+                y2 = y1 + h
+                c = [x1, y1, x2, y2]
+                iou = get_iou(gtval, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+                if counter < 30:
+                    # 选择交并比大于阈值的头30个候选坐标
+                    if iou > 0.70:
+                        # 交并比阈值0.7
+                        counter, train_images, train_labels = process_roi_to_data(
+                            imout,
+                            train_images,
+                            train_labels,
+                            counter,
+                            c,
+                            pos=True
+                        )
+                else:
+                    # 正样本多于30个
+                    fflag = 1
+                if falsecounter < 30:
+                    # IoU低于阈值0.3，前30个坐标作为负样本（背景）
+                    if iou < 0.3:
+                        falsecounter, train_images, train_labels = process_roi_to_data(
+                            imout,
+                            train_images,
+                            train_labels,
+                            falsecounter,
+                            c,
+                            pos=False
+                        )
+                else:
+                    # 负样本多于30个
+                    bflag = 1
+                if fflag == 1 and bflag == 1:
+                    # 全部样本数量已达到
+                    flag = 1
+    return train_images, train_labels
+
+
+def process_annot_file(i):
+    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+    filename = i.split(".")[0] + ".jpg"
+    print(filename)
+    imout = cv2.imread(os.path.join(path, filename))
+    df = pd.read_csv(os.path.join(annotation, i))
+    gtvalues = []
+    for row in df.iterrows():
+        x1 = int(row[1][0].split(" ")[0])
+        y1 = int(row[1][0].split(" ")[1])
+        x2 = int(row[1][0].split(" ")[2])
+        y2 = int(row[1][0].split(" ")[3])
+        gtvalues.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+        # 把标签的坐标数据存入gtvalues
+    ss.setBaseImage(imout)
+    ss.switchToSelectiveSearchFast()
+    ssresults = ss.process()
+    return ssresults, imout, gtvalues
+
+
+def data_cleaner(X, y):
+    th = 1 / 14
+    i = 0
+    length = len(X)
+    while i < length:
+        roi = list(X[i][1].reshape(4))
+        x1 = roi[0]
+        y1 = roi[1]
+        x2 = roi[2]
+        y2 = roi[3]
+        if abs(x1 - x2) <= th or abs(y1 - y2) <= th:
+            print(roi)
+            del X[i], y[i]
+        else:
+            i += 1
+        length = len(X)
+    return X, y
+
+
 def data_generator():
     train_images = []
     train_labels = []
-    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    for e, i in enumerate(os.listdir(annot)):
+    for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
-        try:
-            if i.startswith("airplane"):
-                # 只有名称带airplane才是有目标的存在的样本
-                filename = i.split(".")[0] + ".jpg"
-                print(e, filename)
-                image = cv2.imread(os.path.join(path, filename))
-                df = pd.read_csv(os.path.join(annot, i))
-                gtvalues = []
-                for row in df.iterrows():
-                    x1 = int(row[1][0].split(" ")[0])
-                    y1 = int(row[1][0].split(" ")[1])
-                    x2 = int(row[1][0].split(" ")[2])
-                    y2 = int(row[1][0].split(" ")[3])
-                    gtvalues.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
-                    # 把标签的坐标数据存入gtvalues
-
-                ss.setBaseImage(image)
-                ss.switchToSelectiveSearchFast()
-                ssresults = ss.process()
-                # 加载SS ROI提出器
-
-                imout = image.copy()
-                counter = 0
-                falsecounter = 0
-                flag = 0
-                fflag = 0
-                bflag = 0
-                for e, result in enumerate(ssresults):
-                    if e < 2000 and flag == 0:
-                        # 对SS产生的头2k个结果（坐标）进行处理
-                        for gtval in gtvalues:
-                            # 对这张图上多个标签坐标进行处理
-                            x, y, w, h = result
-                            iou = get_iou(gtval, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
-                            # 计算候选坐标和这一标签坐标的交并比
-                            if counter < 30:
-                                # 选择交并比大于阈值的头30个候选坐标
-                                if iou > 0.70:
-                                    # 交并比阈值0.7
-                                    timage = imout[y:y + h, x:x + w]
-                                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
-                                    train_images.append(resized)
-                                    train_labels.append(1)
-                                    counter += 1
-                            else:
-                                fflag = 1
-                            if falsecounter < 30:
-                                # IoU低于阈值0.3，前30个坐标作为负样本（背景）
-                                if iou < 0.3:
-                                    timage = imout[y:y + h, x:x + w]
-                                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
-                                    train_images.append(resized)
-                                    train_labels.append(0)
-                                    falsecounter += 1
-                            else:
-                                bflag = 1
-                        if fflag == 1 and bflag == 1:
-                            # print("inside")
-                            flag = 1
-        except Exception as e:
-            print(e)
-            print("error in " + filename)
-            continue
-    TI_PKL = open('train_images.pkl', 'wb')
-    TL_PKL = open('train_labels.pkl', 'wb')
-    pickle.dump(train_images, TI_PKL)
-    pickle.dump(train_labels, TL_PKL)
-    TI_PKL.close()
-    TL_PKL.close()
-    X_new = np.array(train_images)
-    y_new = np.array(train_labels)
-    return X_new, y_new
+        if i.startswith("airplane"):
+            ssresults, imout, gtvalues = process_annot_file(i)
+            train_images, train_labels = process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout)
+    train_images, train_labels = data_cleaner(train_images, train_labels)
+    ti_pkl = open('train_images.pkl', 'wb')
+    tl_pkl = open('train_labels.pkl', 'wb')
+    pickle.dump(train_images, ti_pkl)
+    pickle.dump(train_labels, tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
+    return train_images, train_labels
 
 
 def data_loader():
-    TI_PKL = open('train_images.pkl', 'rb')
-    TL_PKL = open('train_labels.pkl', 'rb')
-    train_images = pickle.load(TI_PKL)
-    train_labels = pickle.load(TL_PKL)
-    TI_PKL.close()
-    TL_PKL.close()
-    X_new = np.array(train_images)
-    y_new = np.array(train_labels)
-    return X_new, y_new
+    ti_pkl = open('train_images.pkl', 'rb')
+    tl_pkl = open('train_labels.pkl', 'rb')
+    train_images = pickle.load(ti_pkl)
+    train_labels = pickle.load(tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
+    return train_images, train_labels
 
 
 class FPN(Model):
@@ -189,71 +237,79 @@ class FPN(Model):
         return [p3, p4, p5]
 
 
+def build_model():
+    num_rois = 1
+    vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
+
+    roi_input = Input(shape=(num_rois, 4), name="input_2")
+
+    v16_layer_indices = [10, 14, 18]
+
+    fpn_input = []
+    for each in v16_layer_indices:
+        fpn_input.append(vgg_model.layers[each].output)
+
+    fpn_result = FPN()(fpn_input)
+
+    for layers in vgg_model.layers[:18]:
+        layers.trainable = False
+
+    roi_result = []
+    for i in range(0, len(fpn_result)):
+        x = RoiPoolingConv(pooled_square_size, num_rois)([fpn_result[i], roi_input])
+        roi_result.append(x)
+
+    cls_result = []
+    for i in range(0, len(roi_result)):
+        x = Flatten(name='flat_afterRP_' + str(i))(roi_result[i])
+        x = Dense(64, activation='relu')(x)
+        cls_result.append(x)
+
+    x = Add()(cls_result)
+
+    x = Dense(2, activation="softmax")(x)
+
+    model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
+    opt = Adam(lr=0.0001)
+    model_final.compile(
+        loss=keras.losses.CategoricalCrossentropy(),
+        optimizer=opt,
+        metrics=["accuracy"]
+    )
+    model_final.save("ieeercnn_vgg16_1.h5py")
+    return model_final
+
+
 def train(NewModel=False, GenData=False, UseFPN=True):
+    devices = tf.config.experimental.list_physical_devices(device_type='GPU')
+    print(devices)
+    for gpu in devices:
+        tf.config.experimental.set_memory_growth(gpu, True)
     if NewModel:
-        vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
-        result = None
-        if UseFPN:
-            fpn = FPN()
-            v16_layer_indices = [10, 14, 18]
-            fpn_input = []
-            for each in v16_layer_indices:
-                fpn_input.append(vgg_model.layers[each].output)
-            result = fpn(fpn_input)
-
-        for layers in vgg_model.layers[:18]:
-            layers.trainable = False
-
-        if result:
-            roi_result = []
-            for i in range(0, len(result)):
-                x = Flatten(name='flat_afterFM_' + str(i))(result[i])
-                x = Dense(64, activation='relu')(x)
-                roi_result.append(x)
-            x = Add()(roi_result)
-            predictions = Dense(2, activation="softmax")(x)
-        else:
-            x = vgg_model.layers[-2].output
-            predictions = Dense(2, activation="softmax")(x)
-
-        model_final = Model(inputs=vgg_model.input, outputs=predictions)
-        opt = Adam(lr=0.0001)
-        model_final.compile(
-            loss=keras.losses.CategoricalCrossentropy(),
-            optimizer=opt,
-            metrics=["accuracy"]
-        )
-    else:
-        model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
+        build_model()
+    model_final = keras.models.load_model(
+        "ieeercnn_vgg16_1.h5py",
+        custom_objects={'RoiPoolingConv': RoiPoolingConv}
+    )
 
     if GenData:
         x_new, y_new = data_generator()
     else:
         x_new, y_new = data_loader()
 
+    x_images = []
+    x_rois = []
+    for each in tqdm(x_new):
+        x_images.append(each[0])
+        x_rois.append(each[1])
+    x_images = np.array(x_images)
+    x_rois = np.array(x_rois)
+
     lenc = MyLabelBinarizer()
-    Y = lenc.fit_transform(y_new)
-    x_train, x_test, y_train, y_test = train_test_split(x_new, Y, test_size=0.10)
-    train_gen = ImageDataGenerator(
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation_range=90
-    )
-    train_data = train_gen.flow(
-        x=x_train,
-        y=y_train
-    )
-    test_gen = ImageDataGenerator(
-        horizontal_flip=True,
-        vertical_flip=True,
-        rotation_range=90
-    )
-    test_data = test_gen.flow(
-        x=x_test,
-        y=y_test
-    )
+    y = lenc.fit_transform(y_new)
+
     checkpoint = ModelCheckpoint(
-        "ieeercnn_vgg16_1.h5",
+        "ieeercnn_vgg16_1.h5py",
         monitor='val_loss',
         verbose=1,
         save_best_only=False,
@@ -261,34 +317,16 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         mode='auto',
         save_freq='epoch'
     )
-    early = EarlyStopping(
-        monitor='val_loss',
-        min_delta=0,
-        patience=100,
-        verbose=1,
-        mode='auto'
-    )
+
     with tf.device('/gpu:0'):
-        devices = tf.config.experimental.list_physical_devices(device_type='GPU')
-        print(devices)
-        for gpu in devices:
-            tf.config.experimental.set_memory_growth(gpu, True)
-        hist = model_final.fit_generator(
-            callbacks=[checkpoint],
-            validation_data=test_data,
-            validation_steps=2,
-            generator=train_data,
-            steps_per_epoch=10,
-            epochs=1000
+        hist = model_final.fit(
+            [x_images, x_rois],
+            y,
+            verbose=0,
+            epochs=EP,
+            batch_size=BS,
+            callbacks=[checkpoint]
         )
-    plt.plot(hist.history['loss'])
-    plt.plot(hist.history['val_loss'])
-    plt.title("model loss")
-    plt.ylabel("Loss")
-    plt.xlabel("Epoch")
-    plt.legend(["Loss", "Validation Loss"])
-    plt.show()
-    plt.savefig('chart loss.png')
 
 
 def test_model_cl():
@@ -339,4 +377,4 @@ def test_model_od():
             plt.show()
 
 
-test_model_od()
+train(NewModel=False)

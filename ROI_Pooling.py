@@ -56,12 +56,17 @@ class RoiPoolingConv(Layer):
             y1 *= input_shape[2]
             x2 *= input_shape[1]
             y2 *= input_shape[2]
-
+            tf.print(x1 - x2)
+            tf.print(y1 - y2)
+            # tf.cast cut off fraction part of float number: 4.7 → 4
             x1 = tf.cast(x1, 'int32')
             y1 = tf.cast(y1, 'int32')
             x2 = tf.cast(x2, 'int32')
             y2 = tf.cast(y2, 'int32')
-
+            tf.print(x1 - x2)
+            tf.print(y1 - y2)
+            tf.print(img.shape)
+            tf.print()
             # Resized roi of the image to pooling size (7x7)
             rs = tf.compat.v1.image.resize_images(img[:, x1:x2, y1:y2, :], (self.pool_size, self.pool_size))
             outputs.append(rs)
