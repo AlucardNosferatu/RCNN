@@ -1,3 +1,4 @@
+import random
 import cv2
 import os
 import pickle
@@ -36,6 +37,7 @@ BS = 2
 pooled_square_size = 3
 path = "Images"
 annotation = "Airplanes_Annotations"
+num_rois = 4
 
 
 def get_iou(bb1, bb2):
@@ -74,15 +76,15 @@ def process_roi_to_data(image_out, train_images, train_labels, counter, c, pos=T
     return counter, train_images, train_labels
 
 
-def process_image_and_roi(train_images, train_labels, ss_results, gt_values, image_out):
+def process_image_and_single_roi(train_images, train_labels, ss_results, gt_values, image_out):
     counter = 0
     false_counter = 0
     flag = 0
     f_flag = 0
     b_flag = 0
     e_for_test = 0
-    for gtval in gt_values:
-        print(gtval)
+    for gt_val in gt_values:
+        print(gt_val)
         for e, result in enumerate(ss_results):
             e_for_test = e
             if e < 2000 and flag == 0:
@@ -92,7 +94,7 @@ def process_image_and_roi(train_images, train_labels, ss_results, gt_values, ima
                 x2 = x1 + w
                 y2 = y1 + h
                 c = [x1, y1, x2, y2]
-                iou = get_iou(gtval, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+                iou = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
                 if counter < 30:
                     # 选择交并比大于阈值的头30个候选坐标
                     if iou > 0.70:
@@ -128,6 +130,64 @@ def process_image_and_roi(train_images, train_labels, ss_results, gt_values, ima
     return train_images, train_labels
 
 
+def process_image_and_rois(train_images, train_labels, ss_results, gt_values, image_out):
+    max_rois_per_batch = 4
+    resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
+    resized = resized.reshape((224, 224, 3))
+    rois, labels = rois_pack_up(ss_results, gt_values)
+    for i in range(0, int(len(rois) / max_rois_per_batch)):
+        train_labels.append(
+            np.array(
+                labels[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
+            ).reshape(max_rois_per_batch, 2)
+        )
+        train_images.append(
+            [
+                resized,
+                np.array(
+                    rois[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
+                ).reshape(max_rois_per_batch, 4)
+            ]
+        )
+    return train_images, train_labels
+
+
+def rois_pack_up(ss_results, gt_values):
+    th = 1 / 7
+    rois_count_per_img = 400
+    rois = []
+    labels = []
+    for e, result in enumerate(ss_results):
+        x, y, w, h = result
+        x1 = x
+        y1 = y
+        x2 = x1 + w
+        y2 = y1 + h
+        if abs(x1 - x2) <= th or abs(y1 - y2) <= th:
+            continue
+        iou = 0
+        for gt_val in gt_values:
+            temp = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+            if temp > iou:
+                iou = temp
+        if iou > 0.7:
+            labels.append([0, 1])
+            rois.append([x1 / 256, y1 / 256, x2 / 256, y2 / 256])
+        elif iou < 0.3:
+            labels.append([1, 0])
+            rois.append([x1 / 256, y1 / 256, x2 / 256, y2 / 256])
+
+    length = len(rois)
+    for i in range(0, rois_count_per_img - length):
+        index = random.randint(0, length - 1)
+        rois.append(rois[index])
+        labels.append(labels[index])
+
+    rois = rois[:rois_count_per_img]
+    labels = labels[:rois_count_per_img]
+    return rois, labels
+
+
 def process_annotation_file(i):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     filename = i.split(".")[0] + ".jpg"
@@ -148,7 +208,7 @@ def process_annotation_file(i):
     return ss_results, image_out, gt_values
 
 
-def data_cleaner(X, y):
+def data_cleaner_singleROI(X, y):
     # The th need to be set to fit the smallest FM output by FPN
     th = 1 / 7
     i = 0
@@ -169,7 +229,7 @@ def data_cleaner(X, y):
     new = length
     print(new)
     print(old)
-    print(new/old)
+    print(new / old)
     return X, y
 
 
@@ -180,14 +240,26 @@ def data_generator():
         # 对每一个标记文件（csv）进行操作
         if i.startswith("airplane"):
             ss_results, image_out, gt_values = process_annotation_file(i)
-            train_images, train_labels = process_image_and_roi(
-                train_images,
-                train_labels,
-                ss_results,
-                gt_values,
-                image_out
-            )
-    train_images, train_labels = data_cleaner(train_images, train_labels)
+            if num_rois > 1:
+                train_images, train_labels = process_image_and_rois(
+                    train_images,
+                    train_labels,
+                    ss_results,
+                    gt_values,
+                    image_out
+                )
+            else:
+                train_images, train_labels = process_image_and_single_roi(
+                    train_images,
+                    train_labels,
+                    ss_results,
+                    gt_values,
+                    image_out
+                )
+    if num_rois > 1:
+        pass
+    else:
+        train_images, train_labels = data_cleaner_singleROI(train_images, train_labels)
     ti_pkl = open('train_images.pkl', 'wb')
     tl_pkl = open('train_labels.pkl', 'wb')
     pickle.dump(train_images, ti_pkl)
@@ -249,7 +321,7 @@ class FPN(Model):
 
 
 def build_model():
-    num_rois = 1
+    # TODO: Need to change network structure to adapt num_rois
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
     roi_input = Input(shape=(num_rois, 4), name="input_2")
     v16_layer_indices = [10, 14, 18]
@@ -260,18 +332,25 @@ def build_model():
     for layers in vgg_model.layers[:18]:
         layers.trainable = False
     roi_result = []
+
     for i in range(0, len(fpn_result)):
         x = RoiPoolingConv(pooled_square_size, num_rois)([fpn_result[i], roi_input])
         roi_result.append(x)
     cls_result = []
-    for i in range(0, len(roi_result)):
-        x = Flatten(name='flat_afterRP_' + str(i))(roi_result[i])
-        x = Dense(64, activation='relu')(x)
+    fpn_len = len(roi_result)
+    for i in range(0, num_rois):
+        x_list = []
+        for j in range(0, fpn_len):
+            roi_list = tf.split(roi_result[j], num_rois, 1)
+            x = Flatten(name='flat_afterRP_' + str(i) + "_" + str(j))(roi_list[i])
+            x = Dense(2, activation='relu')(x)
+            x_list.append(x)
+        x = tf.concat(x_list, axis=1)
+        x = Dense(2, activation='softmax')(x)
         cls_result.append(x)
-    x = tf.concat(cls_result, axis=1)
-    x = Dense(2, activation="softmax")(x)
+    x = tf.stack(cls_result, axis=1)
     model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
-    opt = Adam(lr=0.001)
+    opt = Adam(lr=0.0001)
     model_final.compile(
         loss=keras.losses.CategoricalCrossentropy(),
         optimizer=opt,
@@ -309,8 +388,12 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         x_rois.append(each[1])
     x_images = np.array(x_images)
     x_rois = np.array(x_rois)
-    lenc = OneHotGen()
-    y = lenc.fit_transform(y_new)
+    if num_rois > 1:
+        y = np.array(y_new)
+    else:
+        one_hot = OneHotGen()
+        y = one_hot.fit_transform(y_new)
+
     checkpoint = ModelCheckpoint(
         "ieeercnn_vgg16_1.h5py",
         monitor='val_loss',
