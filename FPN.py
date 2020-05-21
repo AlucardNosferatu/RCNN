@@ -32,8 +32,8 @@ class OneHotGen(LabelBinarizer):
 
 
 EP = 100
-BS = 16
-pooled_square_size = 7
+BS = 2
+pooled_square_size = 3
 path = "Images"
 annotation = "Airplanes_Annotations"
 
@@ -269,8 +269,6 @@ def build_model():
         x = Dense(64, activation='relu')(x)
         cls_result.append(x)
     x = tf.concat(cls_result, axis=1)
-    x = Dense(128, activation='relu')(x)
-    x = Dense(64, activation='relu')(x)
     x = Dense(2, activation="softmax")(x)
     model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
     opt = Adam(lr=0.001)
@@ -381,4 +379,4 @@ def test_model_od():
             plt.show()
 
 
-train(NewModel=True)
+train()
