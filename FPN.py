@@ -13,17 +13,16 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D, Input
 from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
-
 from ROI_Pooling import RoiPoolingConv
 
 
-class MyLabelBinarizer(LabelBinarizer):
+class OneHotGen(LabelBinarizer):
     def transform(self, y):
-        Y = super().transform(y)
+        y = super().transform(y)
         if self.y_type_ == 'binary':
-            return np.hstack((Y, 1 - Y))
+            return np.hstack((y, 1 - y))
         else:
-            return Y
+            return y
 
     def inverse_transform(self, Y, threshold=None):
         if self.y_type_ == 'binary':
@@ -33,7 +32,7 @@ class MyLabelBinarizer(LabelBinarizer):
 
 
 EP = 100
-BS = 8
+BS = 16
 pooled_square_size = 7
 path = "Images"
 annotation = "Airplanes_Annotations"
@@ -59,8 +58,8 @@ def get_iou(bb1, bb2):
     return iou
 
 
-def process_roi_to_data(imout, train_images, train_labels, counter, c, pos=True):
-    resized = cv2.resize(imout, (224, 224), interpolation=cv2.INTER_AREA)
+def process_roi_to_data(image_out, train_images, train_labels, counter, c, pos=True):
+    resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
     train_images.append([resized.reshape((224, 224, 3)), np.array([
         float(c[0]) / 256,
         float(c[1]) / 256,
@@ -75,16 +74,16 @@ def process_roi_to_data(imout, train_images, train_labels, counter, c, pos=True)
     return counter, train_images, train_labels
 
 
-def process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout):
+def process_image_and_roi(train_images, train_labels, ss_results, gt_values, image_out):
     counter = 0
-    falsecounter = 0
+    false_counter = 0
     flag = 0
-    fflag = 0
-    bflag = 0
+    f_flag = 0
+    b_flag = 0
     e_for_test = 0
-    for gtval in gtvalues:
+    for gtval in gt_values:
         print(gtval)
-        for e, result in enumerate(ssresults):
+        for e, result in enumerate(ss_results):
             e_for_test = e
             if e < 2000 and flag == 0:
                 x, y, w, h = result
@@ -99,7 +98,7 @@ def process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout
                     if iou > 0.70:
                         # 交并比阈值0.7
                         counter, train_images, train_labels = process_roi_to_data(
-                            imout,
+                            image_out,
                             train_images,
                             train_labels,
                             counter,
@@ -108,52 +107,53 @@ def process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout
                         )
                 else:
                     # 正样本多于30个
-                    fflag = 1
-                if falsecounter < 30:
+                    f_flag = 1
+                if false_counter < 30:
                     # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                     if iou < 0.3:
-                        falsecounter, train_images, train_labels = process_roi_to_data(
-                            imout,
+                        false_counter, train_images, train_labels = process_roi_to_data(
+                            image_out,
                             train_images,
                             train_labels,
-                            falsecounter,
+                            false_counter,
                             c,
                             pos=False
                         )
                 else:
                     # 负样本多于30个
-                    bflag = 1
-                if fflag == 1 and bflag == 1:
+                    b_flag = 1
+                if f_flag == 1 and b_flag == 1:
                     # 全部样本数量已达到
                     flag = 1
     return train_images, train_labels
 
 
-def process_annot_file(i):
+def process_annotation_file(i):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     filename = i.split(".")[0] + ".jpg"
     print(filename)
-    imout = cv2.imread(os.path.join(path, filename))
+    image_out = cv2.imread(os.path.join(path, filename))
     df = pd.read_csv(os.path.join(annotation, i))
-    gtvalues = []
+    gt_values = []
     for row in df.iterrows():
         x1 = int(row[1][0].split(" ")[0])
         y1 = int(row[1][0].split(" ")[1])
         x2 = int(row[1][0].split(" ")[2])
         y2 = int(row[1][0].split(" ")[3])
-        gtvalues.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
-        # 把标签的坐标数据存入gtvalues
-    ss.setBaseImage(imout)
+        gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+        # 把标签的坐标数据存入gt_values
+    ss.setBaseImage(image_out)
     ss.switchToSelectiveSearchFast()
-    ssresults = ss.process()
-    return ssresults, imout, gtvalues
+    ss_results = ss.process()
+    return ss_results, image_out, gt_values
 
 
 def data_cleaner(X, y):
-    # TODO: Need more strict filter to deal with data like (x1=4.5 x2=5.1)
-    th = 1 / 14
+    # The th need to be set to fit the smallest FM output by FPN
+    th = 1 / 7
     i = 0
     length = len(X)
+    old = length
     while i < length:
         roi = list(X[i][1].reshape(4))
         x1 = roi[0]
@@ -166,6 +166,10 @@ def data_cleaner(X, y):
         else:
             i += 1
         length = len(X)
+    new = length
+    print(new)
+    print(old)
+    print(new/old)
     return X, y
 
 
@@ -175,8 +179,14 @@ def data_generator():
     for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
         if i.startswith("airplane"):
-            ssresults, imout, gtvalues = process_annot_file(i)
-            train_images, train_labels = process_image_and_roi(train_images, train_labels, ssresults, gtvalues, imout)
+            ss_results, image_out, gt_values = process_annotation_file(i)
+            train_images, train_labels = process_image_and_roi(
+                train_images,
+                train_labels,
+                ss_results,
+                gt_values,
+                image_out
+            )
     train_images, train_labels = data_cleaner(train_images, train_labels)
     ti_pkl = open('train_images.pkl', 'wb')
     tl_pkl = open('train_labels.pkl', 'wb')
@@ -241,36 +251,29 @@ class FPN(Model):
 def build_model():
     num_rois = 1
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
-
     roi_input = Input(shape=(num_rois, 4), name="input_2")
-
     v16_layer_indices = [10, 14, 18]
-
     fpn_input = []
     for each in v16_layer_indices:
         fpn_input.append(vgg_model.layers[each].output)
-
     fpn_result = FPN()(fpn_input)
-
     for layers in vgg_model.layers[:18]:
         layers.trainable = False
-
     roi_result = []
     for i in range(0, len(fpn_result)):
         x = RoiPoolingConv(pooled_square_size, num_rois)([fpn_result[i], roi_input])
         roi_result.append(x)
-
     cls_result = []
     for i in range(0, len(roi_result)):
         x = Flatten(name='flat_afterRP_' + str(i))(roi_result[i])
         x = Dense(64, activation='relu')(x)
         cls_result.append(x)
-
     x = tf.concat(cls_result, axis=1)
+    x = Dense(128, activation='relu')(x)
+    x = Dense(64, activation='relu')(x)
     x = Dense(2, activation="softmax")(x)
-
     model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
-    opt = Adam(lr=0.0001)
+    opt = Adam(lr=0.001)
     model_final.compile(
         loss=keras.losses.CategoricalCrossentropy(),
         optimizer=opt,
@@ -289,14 +292,18 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         build_model()
     model_final = keras.models.load_model(
         "ieeercnn_vgg16_1.h5py",
-        custom_objects={'RoiPoolingConv': RoiPoolingConv}
+        custom_objects={
+            'RoiPoolingConv': RoiPoolingConv
+        }
     )
-
+    tf.keras.utils.plot_model(
+        model_final, to_file='model.png', show_shapes=True, show_layer_names=True,
+        rankdir='TB', expand_nested=False, dpi=96
+    )
     if GenData:
         x_new, y_new = data_generator()
     else:
         x_new, y_new = data_loader()
-
     x_images = []
     x_rois = []
     for each in tqdm(x_new):
@@ -304,10 +311,8 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         x_rois.append(each[1])
     x_images = np.array(x_images)
     x_rois = np.array(x_rois)
-
-    lenc = MyLabelBinarizer()
+    lenc = OneHotGen()
     y = lenc.fit_transform(y_new)
-
     checkpoint = ModelCheckpoint(
         "ieeercnn_vgg16_1.h5py",
         monitor='val_loss',
@@ -317,7 +322,6 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         mode='auto',
         save_freq='epoch'
     )
-
     with tf.device('/gpu:0'):
         hist = model_final.fit(
             [x_images, x_rois],
@@ -332,7 +336,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
 def test_model_cl():
     model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
     x_new, y_new = data_loader()
-    one_hot = MyLabelBinarizer()
+    one_hot = OneHotGen()
     y = one_hot.fit_transform(y_new)
     x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
     for test in x_test:
@@ -356,25 +360,25 @@ def test_model_od():
         if i.startswith("4"):
             z += 1
             img = cv2.imread(os.path.join(path, i))
-            imout = img.copy()
+            image_out = img.copy()
 
             # Selective Search will be replaced by ROI proposal
             ss.setBaseImage(img)
             ss.switchToSelectiveSearchFast()
-            ssresults = ss.process()
+            ss_results = ss.process()
 
-            for e, result in enumerate(ssresults):
+            for e, result in enumerate(ss_results):
                 if e < 2000:
                     x, y, w, h = result
-                    timage = imout[y:y + h, x:x + w]
-                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
+                    test_image = image_out[y:y + h, x:x + w]
+                    resized = cv2.resize(test_image, (224, 224), interpolation=cv2.INTER_AREA)
                     img = np.expand_dims(resized, axis=0)
                     out = model_loaded.predict(img)
                     if out[0][0] > 0.65:
-                        cv2.rectangle(imout, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                        cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
             plt.figure()
-            plt.imshow(imout)
+            plt.imshow(image_out)
             plt.show()
 
 
-train()
+train(NewModel=True)
