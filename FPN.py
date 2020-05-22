@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 from tensorflow.keras import Model
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D, Input
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D, Input, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 from ROI_Pooling import RoiPoolingConv
@@ -34,7 +34,7 @@ class OneHotGen(LabelBinarizer):
 
 EP = 100
 BS = 4
-pooled_square_size = 2
+pooled_square_size = 3
 path = "Images"
 annotation = "Airplanes_Annotations"
 num_rois = 4
@@ -134,31 +134,37 @@ def process_image_and_rois(train_images, train_labels, ss_results, gt_values, im
     max_rois_per_batch = 4
     resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
     resized = resized.reshape((224, 224, 3))
-    rois, labels = rois_pack_up(ss_results, gt_values)
-    for i in range(0, int(len(rois) / max_rois_per_batch)):
-        train_labels.append(
-            np.array(
-                labels[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
-            ).reshape(max_rois_per_batch, 2)
-        )
-        train_images.append(
-            [
-                resized,
+    rois, labels, skip = rois_pack_up(ss_results, gt_values)
+    if not skip:
+        for i in range(0, int(len(rois) / max_rois_per_batch)):
+            train_labels.append(
                 np.array(
-                    rois[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
-                ).reshape(max_rois_per_batch, 4)
-            ]
-        )
+                    labels[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
+                ).reshape(max_rois_per_batch, 2)
+            )
+            train_images.append(
+                [
+                    resized,
+                    np.array(
+                        rois[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
+                    ).reshape(max_rois_per_batch, 4)
+                ]
+            )
+    else:
+        print("Due to too many negative samples, skip this img")
     return train_images, train_labels
 
 
 def rois_pack_up(ss_results, gt_values):
+    skip = False
     smallest_fm_size = 7
     src_img_size = 256
     th = src_img_size / smallest_fm_size
     rois_count_per_img = 200
     rois = []
     labels = []
+    false_count = 0
+    length = len(rois)
     for e, result in enumerate(ss_results):
         x, y, w, h = result
         x1 = x
@@ -182,7 +188,7 @@ def rois_pack_up(ss_results, gt_values):
                     y2 / src_img_size
                 ]
             )
-        elif iou < 0.3:
+        elif iou < 0.3 and false_count <= int(0.5 * length):
             labels.append([1, 0])
             rois.append(
                 [
@@ -192,16 +198,17 @@ def rois_pack_up(ss_results, gt_values):
                     y2 / src_img_size
                 ]
             )
-
-    length = len(rois)
+            false_count += 1
+        length = len(rois)
     for i in range(0, rois_count_per_img - length):
         index = random.randint(0, length - 1)
         rois.append(rois[index])
         labels.append(labels[index])
-
     rois = rois[:rois_count_per_img]
     labels = labels[:rois_count_per_img]
-    return rois, labels
+    if labels.count([1, 0]) >= 0.5 * len(labels):
+        skip = True
+    return rois, labels, skip
 
 
 def process_annotation_file(i):
@@ -344,7 +351,6 @@ class FPN(Model):
 
 
 def build_model():
-    # TODO: Need to change network structure to adapt num_rois
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
     roi_input = Input(shape=(num_rois, 4), name="input_2")
     v16_layer_indices = [10, 14, 18]
@@ -352,12 +358,13 @@ def build_model():
     for each in v16_layer_indices:
         fpn_input.append(vgg_model.layers[each].output)
     fpn_result = FPN()(fpn_input)
-    for layers in vgg_model.layers[:9]:
+    for layers in vgg_model.layers:
         layers.trainable = False
     roi_result = []
 
     for i in range(0, len(fpn_result)):
-        x = RoiPoolingConv(pooled_square_size, num_rois)([fpn_result[i], roi_input])
+        x = BatchNormalization()(fpn_result[i])
+        x = RoiPoolingConv(pooled_square_size, num_rois)([x, roi_input])
         roi_result.append(x)
     cls_result = []
     fpn_len = len(roi_result)
@@ -365,15 +372,19 @@ def build_model():
         x_list = []
         for j in range(0, fpn_len):
             roi_list = tf.split(roi_result[j], num_rois, 1)
-            x = Flatten(name='flat_afterRP_' + str(i) + "_" + str(j))(roi_list[i])
-            x = Dense(2, activation='relu')(x)
+            x = BatchNormalization()(roi_list[i])
+            x = Flatten(name='flat_afterRP_' + str(i) + "_" + str(j))(x)
+            x = Dense(64, activation='relu')(x)
             x_list.append(x)
         x = tf.concat(x_list, axis=1)
+        x = BatchNormalization()(x)
+        x = Dense(64, activation='relu')(x)
+        x = BatchNormalization()(x)
         x = Dense(2, activation='softmax')(x)
         cls_result.append(x)
     x = tf.stack(cls_result, axis=1)
     model_final = Model(inputs=[vgg_model.input, roi_input], outputs=x)
-    opt = Adam(lr=0.0001)
+    opt = Adam(lr=0.00001)
     model_final.compile(
         loss=keras.losses.CategoricalCrossentropy(),
         optimizer=opt,
@@ -383,7 +394,7 @@ def build_model():
     return model_final
 
 
-def train(NewModel=False, GenData=False, UseFPN=True):
+def train(NewModel=False, GenData=False):
     devices = tf.config.experimental.list_physical_devices(device_type='GPU')
     print(devices)
     for gpu in devices:
@@ -403,7 +414,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
     if GenData:
         x_new, y_new = data_generator()
     else:
-        x_new, y_new = data_loader(LoadStart=5000, LoadCount=8000)
+        x_new, y_new = data_loader()
     x_images = []
     x_rois = []
     for each in tqdm(x_new):
@@ -427,7 +438,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         save_freq='epoch'
     )
     with tf.device('/gpu:0'):
-        hist = model_final.fit(
+        model_final.fit(
             [x_images, x_rois],
             y,
             verbose=1,
@@ -512,4 +523,4 @@ def test_model_od():
             plt.show()
 
 
-test_model_cl()
+train()
