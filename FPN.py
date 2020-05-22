@@ -34,7 +34,7 @@ class OneHotGen(LabelBinarizer):
 
 EP = 100
 BS = 4
-pooled_square_size = 3
+pooled_square_size = 2
 path = "Images"
 annotation = "Airplanes_Annotations"
 num_rois = 4
@@ -156,7 +156,7 @@ def rois_pack_up(ss_results, gt_values):
     smallest_fm_size = 7
     src_img_size = 256
     th = src_img_size / smallest_fm_size
-    rois_count_per_img = 400
+    rois_count_per_img = 200
     rois = []
     labels = []
     for e, result in enumerate(ss_results):
@@ -285,13 +285,20 @@ def data_generator():
     return train_images, train_labels
 
 
-def data_loader():
+def data_loader(LoadStart=0, LoadCount=0):
     ti_pkl = open('train_images.pkl', 'rb')
     tl_pkl = open('train_labels.pkl', 'rb')
     train_images = pickle.load(ti_pkl)
     train_labels = pickle.load(tl_pkl)
     ti_pkl.close()
     tl_pkl.close()
+    state = np.random.get_state()
+    np.random.shuffle(train_images)
+    np.random.set_state(state)
+    np.random.shuffle(train_labels)
+    if LoadCount:
+        train_images = train_images[LoadStart:LoadCount]
+        train_labels = train_labels[LoadStart:LoadCount]
     return train_images, train_labels
 
 
@@ -345,7 +352,7 @@ def build_model():
     for each in v16_layer_indices:
         fpn_input.append(vgg_model.layers[each].output)
     fpn_result = FPN()(fpn_input)
-    for layers in vgg_model.layers[:18]:
+    for layers in vgg_model.layers[:9]:
         layers.trainable = False
     roi_result = []
 
@@ -396,7 +403,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
     if GenData:
         x_new, y_new = data_generator()
     else:
-        x_new, y_new = data_loader()
+        x_new, y_new = data_loader(LoadStart=5000, LoadCount=8000)
     x_images = []
     x_rois = []
     for each in tqdm(x_new):
@@ -431,21 +438,48 @@ def train(NewModel=False, GenData=False, UseFPN=True):
 
 
 def test_model_cl():
-    model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
-    x_new, y_new = data_loader()
-    one_hot = OneHotGen()
-    y = one_hot.fit_transform(y_new)
-    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
-    for test in x_test:
-        im = test
+    model_final = keras.models.load_model("ieeercnn_vgg16_1.h5py")
+    x_new, y_new = data_loader(LoadStart=0, LoadCount=100)
+    x_images = []
+    x_rois = []
+    for each in tqdm(x_new):
+        x_images.append(each[0])
+        x_rois.append(each[1])
+    x_img_array = np.array(x_images)
+    x_roi_array = np.array(x_rois)
+    for i in range(0, len(x_images)):
+        im = x_images[i]
+        roi = x_rois[i]
+        roi = roi * 256
+        roi = roi.astype('uint32')
+        out = model_final.predict(
+            [
+                x_img_array[i, :, :, :].reshape((1, 224, 224, 3)),
+                x_roi_array[i, :, :].reshape((1, 4, 4))
+            ]
+        )
+        for j in range(0, num_rois):
+            print(str(out[:, j]) + "  " + str(roi[j, :]))
+            if out[:, j][0][0] > out[:, j][0][1]:
+                cv2.rectangle(
+                    im,
+                    (roi[j, :][0], roi[j, :][1]),
+                    (roi[j, :][2], roi[j, :][3]),
+                    (0, 255, 0),
+                    1,
+                    cv2.LINE_AA
+                )
+            else:
+                cv2.rectangle(
+                    im,
+                    (roi[j, :][0], roi[j, :][1]),
+                    (roi[j, :][2], roi[j, :][3]),
+                    (0, 0, 255),
+                    1,
+                    cv2.LINE_AA
+                )
+        plt.figure()
         plt.imshow(im)
-        img = np.expand_dims(im, axis=0)
-        out = model_final.predict(img)
-
-        if out[0][0] > out[0][1]:
-            print(str(out) + " " + "plane")
-        else:
-            print(str(out) + " " + "not plane")
         plt.show()
 
 
@@ -478,4 +512,4 @@ def test_model_od():
             plt.show()
 
 
-train()
+test_model_cl()
