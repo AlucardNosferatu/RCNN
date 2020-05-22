@@ -33,7 +33,7 @@ class OneHotGen(LabelBinarizer):
 
 
 EP = 100
-BS = 2
+BS = 4
 pooled_square_size = 3
 path = "Images"
 annotation = "Airplanes_Annotations"
@@ -153,7 +153,9 @@ def process_image_and_rois(train_images, train_labels, ss_results, gt_values, im
 
 
 def rois_pack_up(ss_results, gt_values):
-    th = 1 / 7
+    smallest_fm_size = 7
+    src_img_size = 256
+    th = src_img_size / smallest_fm_size
     rois_count_per_img = 400
     rois = []
     labels = []
@@ -172,10 +174,24 @@ def rois_pack_up(ss_results, gt_values):
                 iou = temp
         if iou > 0.7:
             labels.append([0, 1])
-            rois.append([x1 / 256, y1 / 256, x2 / 256, y2 / 256])
+            rois.append(
+                [
+                    x1 / src_img_size,
+                    y1 / src_img_size,
+                    x2 / src_img_size,
+                    y2 / src_img_size
+                ]
+            )
         elif iou < 0.3:
             labels.append([1, 0])
-            rois.append([x1 / 256, y1 / 256, x2 / 256, y2 / 256])
+            rois.append(
+                [
+                    x1 / src_img_size,
+                    y1 / src_img_size,
+                    x2 / src_img_size,
+                    y2 / src_img_size
+                ]
+            )
 
     length = len(rois)
     for i in range(0, rois_count_per_img - length):
@@ -374,7 +390,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         }
     )
     tf.keras.utils.plot_model(
-        model_final, to_file='model.png', show_shapes=True, show_layer_names=True,
+        model_final, to_file='model.png', show_shapes=False, show_layer_names=False,
         rankdir='TB', expand_nested=False, dpi=96
     )
     if GenData:
