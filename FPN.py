@@ -1,18 +1,19 @@
-import os, cv2
+import cv2
+import os
+import pickle
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, Add, UpSampling2D, Input
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras import Model, optimizers
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
-from ROI_Pooling import RoiPoolingConv
-import matplotlib.pyplot as plt
-import pickle
+from tensorflow.keras import Model
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 tf.compat.v1.disable_eager_execution()
 
@@ -137,15 +138,20 @@ def data_generator():
 
 
 def data_loader():
-    TI_PKL = open('train_images.pkl', 'rb')
-    TL_PKL = open('train_labels.pkl', 'rb')
-    train_images = pickle.load(TI_PKL)
-    train_labels = pickle.load(TL_PKL)
-    TI_PKL.close()
-    TL_PKL.close()
-    X_new = np.array(train_images)
+    ti_pkl = open('train_images.pkl', 'rb')
+    tl_pkl = open('train_labels.pkl', 'rb')
+    train_images = pickle.load(ti_pkl)
+    train_labels = pickle.load(tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
+    while train_labels.count(0) > 0.5 * len(train_labels):
+        print(train_labels.count(0)/len(train_labels))
+        index = train_labels.index(0)
+        del train_labels[index]
+        del train_images[index]
+    x_new = np.array(train_images)
     y_new = np.array(train_labels)
-    return X_new, y_new
+    return x_new, y_new
 
 
 class FPN(Model):
@@ -190,6 +196,11 @@ class FPN(Model):
 
 
 def train(NewModel=False, GenData=False, UseFPN=True):
+    if GenData:
+        x_new, y_new = data_generator()
+    else:
+        x_new, y_new = data_loader()
+
     if NewModel:
         vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
         result = None
@@ -224,12 +235,7 @@ def train(NewModel=False, GenData=False, UseFPN=True):
             metrics=["accuracy"]
         )
     else:
-        model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
-
-    if GenData:
-        x_new, y_new = data_generator()
-    else:
-        x_new, y_new = data_loader()
+        model_final = keras.models.load_model("ieeercnn_vgg16_1.h5py")
 
     lenc = MyLabelBinarizer()
     Y = lenc.fit_transform(y_new)
@@ -253,20 +259,13 @@ def train(NewModel=False, GenData=False, UseFPN=True):
         y=y_test
     )
     checkpoint = ModelCheckpoint(
-        "ieeercnn_vgg16_1.h5",
+        "ieeercnn_vgg16_1.h5py",
         monitor='val_loss',
         verbose=1,
         save_best_only=False,
         save_weights_only=False,
         mode='auto',
         save_freq='epoch'
-    )
-    early = EarlyStopping(
-        monitor='val_loss',
-        min_delta=0,
-        patience=100,
-        verbose=1,
-        mode='auto'
     )
     with tf.device('/gpu:0'):
         devices = tf.config.experimental.list_physical_devices(device_type='GPU')
@@ -312,7 +311,7 @@ def test_model_cl():
 
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_loaded = keras.models.load_model("ieeercnn_vgg16_1.h5py")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
