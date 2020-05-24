@@ -2,8 +2,6 @@ import os, cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
-tf.compat.v1.disable_eager_execution()
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -14,6 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 import matplotlib.pyplot as plt
 import pickle
+
+tf.compat.v1.disable_eager_execution()
 
 
 class MyLabelBinarizer(LabelBinarizer):
@@ -268,7 +268,7 @@ def train(NewModel=False, GenData=False):
 
 
 def test_model_cl():
-    model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_final = keras.models.load_model("RCNN.h5")
     X_new, y_new = data_loader()
     lenc = MyLabelBinarizer()
     Y = lenc.fit_transform(y_new)
@@ -288,7 +288,7 @@ def test_model_cl():
 
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_loaded = keras.models.load_model("RCNN.h5")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
@@ -313,6 +313,3 @@ def test_model_od():
             plt.figure()
             plt.imshow(imout)
             plt.show()
-
-
-train(NewModel=True, GenData=True)

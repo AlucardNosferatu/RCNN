@@ -20,7 +20,15 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="" />
+    <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/AppMain.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/FastRCNN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/FastRCNN.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RCNN.pyproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RCNN.sln" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -53,10 +61,11 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/RCNN.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/AppMain.py" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PythonContentEntriesConfigurable" />
   </component>
   <component name="RunManager">
-    <configuration name="RCNN" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="AppMain" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -68,7 +77,7 @@
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RCNN.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/AppMain.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -116,54 +125,58 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590221866541">
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590287628094">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590221866541" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590287628094" />
     <state x="916" y="77" key="#xdebugger.evaluate" timestamp="1590222731576">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="916" y="77" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590222731576" />
-    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590221865102">
+    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590287358282">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590221865102" />
-    <state width="1515" height="213" key="GridCell.Tab.0.bottom" timestamp="1590223305002">
+    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590287358282" />
+    <state width="1515" height="279" key="GridCell.Tab.0.bottom" timestamp="1590288878475">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590223305002" />
-    <state width="1515" height="213" key="GridCell.Tab.0.center" timestamp="1590223305002">
+    <state width="1515" height="279" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590288878475" />
+    <state width="1515" height="279" key="GridCell.Tab.0.center" timestamp="1590288878475">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590223305002" />
-    <state width="1515" height="213" key="GridCell.Tab.0.left" timestamp="1590223305002">
+    <state width="1515" height="279" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590288878475" />
+    <state width="1515" height="279" key="GridCell.Tab.0.left" timestamp="1590288878475">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590223305002" />
-    <state width="1515" height="213" key="GridCell.Tab.0.right" timestamp="1590223305002">
+    <state width="1515" height="279" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590288878475" />
+    <state width="1515" height="279" key="GridCell.Tab.0.right" timestamp="1590288878475">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590223305002" />
-    <state width="1515" height="213" key="GridCell.Tab.1.bottom" timestamp="1590223305003">
+    <state width="1515" height="279" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590288878475" />
+    <state width="1515" height="279" key="GridCell.Tab.1.bottom" timestamp="1590288878476">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590223305003" />
-    <state width="1515" height="213" key="GridCell.Tab.1.center" timestamp="1590223305003">
+    <state width="1515" height="279" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590288878476" />
+    <state width="1515" height="279" key="GridCell.Tab.1.center" timestamp="1590288878476">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590223305003" />
-    <state width="1515" height="213" key="GridCell.Tab.1.left" timestamp="1590223305002">
+    <state width="1515" height="279" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590288878476" />
+    <state width="1515" height="279" key="GridCell.Tab.1.left" timestamp="1590288878476">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590223305002" />
-    <state width="1515" height="213" key="GridCell.Tab.1.right" timestamp="1590223305003">
+    <state width="1515" height="279" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590288878476" />
+    <state width="1515" height="279" key="GridCell.Tab.1.right" timestamp="1590288878476">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="213" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590223305003" />
-    <state x="608" y="203" key="refactoring.ChangeSignatureDialog" timestamp="1589986519119">
+    <state width="1515" height="279" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590288878476" />
+    <state x="270" y="77" key="SettingsEditor" timestamp="1590283365723">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="608" y="203" key="refactoring.ChangeSignatureDialog/0.0.1536.864@0.0.1536.864" timestamp="1589986519119" />
+    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1590283365723" />
+    <state x="608" y="203" key="refactoring.ChangeSignatureDialog" timestamp="1590285386391">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="608" y="203" key="refactoring.ChangeSignatureDialog/0.0.1536.864@0.0.1536.864" timestamp="1590285386391" />
     <state x="431" y="181" width="672" height="678" key="search.everywhere.popup" timestamp="1589986459834">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
