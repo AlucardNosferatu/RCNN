@@ -1,14 +1,17 @@
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Dense
-from tensorflow.keras import Model
-from RCNN import get_iou
-import xml.etree.ElementTree as ElTr
-import tensorflow as tf
-import pandas as pd
-import numpy as np
-import pickle
-import cv2
 import os
+import pickle
+import xml.etree.ElementTree as ElTr
+
+import cv2
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import Model
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from tqdm import tqdm
+
+from RCNN import get_iou
 
 path = "ProcessedData\\VOC2007_JPG"
 annotation = "ProcessedData\\VOC2007_XML"
@@ -52,7 +55,10 @@ def data_generator():
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     file_count = 0
+    max_file_count = 100
     for e, annotation_file in enumerate(os.listdir(annotation)):
+        if file_count == max_file_count:
+            break
         filename = annotation_file.split(".")[0] + ".jpg"
         image = cv2.imread(os.path.join(path, filename))
 
@@ -149,13 +155,23 @@ def data_generator():
 
 
 def data_loader():
-    ti_pkl = open('ProcessedData\\train_images.pkl', 'rb')
-    tl_pkl = open('ProcessedData\\train_labels.pkl', 'rb')
-    train_images = pickle.load(ti_pkl)
-    train_labels = pickle.load(tl_pkl)
-    ti_pkl.close()
-    tl_pkl.close()
+    train_images = []
+    train_labels = []
+    for i in tqdm(range(0, 10)):
+        ti_pkl = open('ProcessedData\\train_images_' + str(i) + '.pkl', 'rb')
+        tl_pkl = open('ProcessedData\\train_labels_' + str(i) + '.pkl', 'rb')
+        train_images += pickle.load(ti_pkl)
+        train_labels += pickle.load(tl_pkl)
+        ti_pkl.close()
+        tl_pkl.close()
     x_new = np.array(train_images)
+    for i in tqdm(range(0, len(train_labels))):
+        n = train_labels[i]
+        train_labels[i] = [0] * n
+        train_labels[i] += [1]
+        n = 20 - n
+        if n:
+            train_labels[i] += ([0] * n)
     y_new = np.array(train_labels)
     return x_new, y_new
 
@@ -177,6 +193,28 @@ def transfer_model_build():
 
 def transfer_model_train():
     model_final = tf.keras.models.load_model("TrainedModels\\RCNN-VOC2007.h5")
+    x_new, y_new = data_loader()
+    checkpoint = ModelCheckpoint(
+        "RCNN-VOC2007.h5",
+        monitor='val_loss',
+        verbose=1,
+        save_best_only=False,
+        save_weights_only=False,
+        mode='auto',
+        save_freq='epoch'
+    )
+    with tf.device('/gpu:0'):
+        gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+        print(gpus)
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        model_final.fit(
+            x_new,
+            y_new,
+            epochs=10,
+            batch_size=1,
+            callbacks=[checkpoint]
+        )
 
 
-data_generator()
+transfer_model_train()
