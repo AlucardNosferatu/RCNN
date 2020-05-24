@@ -67,11 +67,8 @@ def time_test():
             # endregion
 
             with open('TestResults\\test_result_' + str(e) + '.txt', "w") as f:
-                f.writelines(record)
+                f.writelines('\n'.join(record))
             plt.figure()
             plt.imshow(image_out)
             plt.savefig('TestResults\\test_result_' + str(e) + '.png')
-            plt.show()
-
-
-time_test()
+            plt.close()

@@ -3,3 +3,7 @@ Images/
 *.pkl
 *.h5
 ieeercnn_vgg16_1.h5py/
+*.jpg
+*.xml
+*.png
+TestResults/
