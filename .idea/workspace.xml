@@ -21,6 +21,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AppMain.py" beforeDir="false" afterPath="$PROJECT_DIR$/AppMain.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/forVOC2007.py" beforeDir="false" afterPath="$PROJECT_DIR$/forVOC2007.py" afterDir="false" />
@@ -125,46 +126,46 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590314451302" />
-    <state x="916" y="77" key="#xdebugger.evaluate" timestamp="1590314641976">
+    <state x="916" y="77" key="#xdebugger.evaluate" timestamp="1590316854687">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="916" y="77" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590314641976" />
+    <state x="916" y="77" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590316854687" />
     <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590314449885">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590314449885" />
-    <state width="1515" height="254" key="GridCell.Tab.0.bottom" timestamp="1590315413696">
+    <state width="1515" height="117" key="GridCell.Tab.0.bottom" timestamp="1590318622412">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590315413696" />
-    <state width="1515" height="254" key="GridCell.Tab.0.center" timestamp="1590315413696">
+    <state width="1515" height="117" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590318622412" />
+    <state width="1515" height="117" key="GridCell.Tab.0.center" timestamp="1590318622412">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590315413696" />
-    <state width="1515" height="254" key="GridCell.Tab.0.left" timestamp="1590315413696">
+    <state width="1515" height="117" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590318622412" />
+    <state width="1515" height="117" key="GridCell.Tab.0.left" timestamp="1590318622411">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590315413696" />
-    <state width="1515" height="254" key="GridCell.Tab.0.right" timestamp="1590315413696">
+    <state width="1515" height="117" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590318622411" />
+    <state width="1515" height="117" key="GridCell.Tab.0.right" timestamp="1590318622412">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590315413696" />
-    <state width="1515" height="254" key="GridCell.Tab.1.bottom" timestamp="1590315413590">
+    <state width="1515" height="117" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590318622412" />
+    <state width="1515" height="117" key="GridCell.Tab.1.bottom" timestamp="1590318622324">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590315413590" />
-    <state width="1515" height="254" key="GridCell.Tab.1.center" timestamp="1590315413590">
+    <state width="1515" height="117" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590318622324" />
+    <state width="1515" height="117" key="GridCell.Tab.1.center" timestamp="1590318622324">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590315413590" />
-    <state width="1515" height="254" key="GridCell.Tab.1.left" timestamp="1590315413590">
+    <state width="1515" height="117" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590318622324" />
+    <state width="1515" height="117" key="GridCell.Tab.1.left" timestamp="1590318622324">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590315413590" />
-    <state width="1515" height="254" key="GridCell.Tab.1.right" timestamp="1590315413590">
+    <state width="1515" height="117" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590318622324" />
+    <state width="1515" height="117" key="GridCell.Tab.1.right" timestamp="1590318622324">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="254" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590315413590" />
+    <state width="1515" height="117" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590318622324" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590283365723">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -177,16 +178,5 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="431" y="181" width="672" height="678" key="search.everywhere.popup/0.0.1536.864@0.0.1536.864" timestamp="1589986459834" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/forVOC2007.py</url>
-          <line>148</line>
-          <option name="timeStamp" value="6" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

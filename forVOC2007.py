@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ElTr
 import cv2
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 from tensorflow.keras import Model
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Dense
@@ -55,7 +56,7 @@ def data_generator():
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     file_count = 0
-    max_file_count = 100
+    max_file_count = 1000
     for e, annotation_file in enumerate(os.listdir(annotation)):
         if file_count == max_file_count:
             break
@@ -154,16 +155,35 @@ def data_generator():
     tl_pkl.close()
 
 
-def data_loader():
+def data_loader(show=False, balance=False):
     train_images = []
     train_labels = []
-    for i in tqdm(range(0, 100)):
+    for i in tqdm(range(0, 150)):
         ti_pkl = open('ProcessedData\\train_images_' + str(i) + '.pkl', 'rb')
         tl_pkl = open('ProcessedData\\train_labels_' + str(i) + '.pkl', 'rb')
         train_images += pickle.load(ti_pkl)
         train_labels += pickle.load(tl_pkl)
         ti_pkl.close()
         tl_pkl.close()
+    state = np.random.get_state()
+    np.random.shuffle(train_images)
+    np.random.set_state(state)
+    np.random.shuffle(train_labels)
+    if balance:
+        while train_labels.count(0) > 0.5 * len(train_labels):
+            print("Negative Sample: " + str(int(train_labels.count(0) * 100 / len(train_labels))) + "%")
+            index = train_labels.index(0)
+            del train_images[index]
+            del train_labels[index]
+    if show:
+        for i in range(0, len(train_labels)):
+            print(train_labels[i])
+            if train_labels[i] != 0:
+                image_out = train_images[i]
+                b, g, r = cv2.split(image_out)
+                image_out = cv2.merge([r, g, b])
+                plt.imshow(image_out)
+                plt.show()
     x_new = np.array(train_images)
     for i in tqdm(range(0, len(train_labels))):
         n = train_labels[i]
@@ -193,7 +213,7 @@ def transfer_model_build():
 
 def transfer_model_train():
     model_final = tf.keras.models.load_model("TrainedModels\\RCNN-VOC2007.h5")
-    x_new, y_new = data_loader()
+    x_new, y_new = data_loader(False, True)
     checkpoint = ModelCheckpoint(
         "RCNN-VOC2007.h5",
         monitor='val_loss',
@@ -204,9 +224,9 @@ def transfer_model_train():
         save_freq='epoch'
     )
     with tf.device('/gpu:0'):
-        gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
-        print(gpus)
-        for gpu in gpus:
+        gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
+        print(gpu_list)
+        for gpu in gpu_list:
             tf.config.experimental.set_memory_growth(gpu, True)
         model_final.fit(
             x_new,
