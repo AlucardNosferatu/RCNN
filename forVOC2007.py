@@ -157,7 +157,7 @@ def data_generator():
 def data_loader():
     train_images = []
     train_labels = []
-    for i in tqdm(range(0, 10)):
+    for i in tqdm(range(0, 100)):
         ti_pkl = open('ProcessedData\\train_images_' + str(i) + '.pkl', 'rb')
         tl_pkl = open('ProcessedData\\train_labels_' + str(i) + '.pkl', 'rb')
         train_images += pickle.load(ti_pkl)
@@ -212,9 +212,6 @@ def transfer_model_train():
             x_new,
             y_new,
             epochs=10,
-            batch_size=1,
+            batch_size=8,
             callbacks=[checkpoint]
         )
-
-
-transfer_model_train()
