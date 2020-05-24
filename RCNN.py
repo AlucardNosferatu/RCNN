@@ -2,7 +2,6 @@ import os, cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import tensorflow.keras as keras
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Model, optimizers
@@ -31,8 +30,8 @@ class MyLabelBinarizer(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
-path = "Images"
-annot = "Airplanes_Annotations"
+path = "ProcessedData\\Images"
+annot = "ProcessedData\\Airplanes_Annotations"
 
 
 def demo():
@@ -195,12 +194,12 @@ def train(NewModel=False, GenData=False):
         model_final = Model(inputs=vgg_model.input, outputs=predictions)
         opt = Adam(lr=0.0001)
         model_final.compile(
-            loss=keras.losses.CategoricalCrossentropy(),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
             optimizer=opt,
             metrics=["accuracy"]
         )
     else:
-        model_final = keras.models.load_model("RCNN.h5")
+        model_final = tf.keras.models.load_model("RCNN.h5")
 
     if GenData:
         x_new, y_new = data_generator()
@@ -268,12 +267,12 @@ def train(NewModel=False, GenData=False):
 
 
 def test_model_cl():
-    model_final = keras.models.load_model("RCNN.h5")
-    X_new, y_new = data_loader()
+    model_final = tf.keras.models.load_model("RCNN.h5")
+    x_new, y_new = data_loader()
     lenc = MyLabelBinarizer()
-    Y = lenc.fit_transform(y_new)
-    X_train, X_test, y_train, y_test = train_test_split(X_new, Y, test_size=0.10)
-    for test in X_test:
+    y = lenc.fit_transform(y_new)
+    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
+    for test in x_test:
         im = test
         plt.imshow(im)
         img = np.expand_dims(im, axis=0)
@@ -288,28 +287,28 @@ def test_model_cl():
 
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = keras.models.load_model("RCNN.h5")
+    model_loaded = tf.keras.models.load_model("RCNN.h5")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
             z += 1
             img = cv2.imread(os.path.join(path, i))
-            imout = img.copy()
+            image_out = img.copy()
 
             # Selective Search will be replaced by ROI proposal
             ss.setBaseImage(img)
             ss.switchToSelectiveSearchFast()
-            ssresults = ss.process()
+            ss_results = ss.process()
 
-            for e, result in enumerate(ssresults):
+            for e, result in enumerate(ss_results):
                 if e < 2000:
                     x, y, w, h = result
-                    timage = imout[y:y + h, x:x + w]
-                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
+                    target_image = image_out[y:y + h, x:x + w]
+                    resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                     img = np.expand_dims(resized, axis=0)
                     out = model_loaded.predict(img)
                     if out[0][0] > 0.65:
-                        cv2.rectangle(imout, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                        cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
             plt.figure()
-            plt.imshow(imout)
+            plt.imshow(image_out)
             plt.show()
