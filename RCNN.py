@@ -1,22 +1,22 @@
-import os, cv2
+import cv2
+import os
+import pickle
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
-tf.compat.v1.disable_eager_execution()
-import tensorflow.keras as keras
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras import Model, optimizers
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
-import matplotlib.pyplot as plt
-import pickle
+from tensorflow.keras import Model
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+tf.compat.v1.disable_eager_execution()
 
 
-class MyLabelBinarizer(LabelBinarizer):
+class OneHot(LabelBinarizer):
     def transform(self, y):
         Y = super().transform(y)
         if self.y_type_ == 'binary':
@@ -32,15 +32,15 @@ class MyLabelBinarizer(LabelBinarizer):
 
 
 path = "Images"
-annot = "Airplanes_Annotations"
+annotation = "Airplanes_Annotations"
 
 
 def demo():
-    for e, i in enumerate(os.listdir(annot)):
+    for e, i in enumerate(os.listdir(annotation)):
         if e < 10:
             filename = i.split(".")[0] + ".jpg"
             img = cv2.imread(os.path.join(path, filename))
-            path_instance = os.path.join(annot, i)
+            path_instance = os.path.join(annotation, i)
             f = open(path_instance)
             df = pd.read_csv(f)
             f.close()
@@ -97,7 +97,7 @@ def data_generator():
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    for e, i in enumerate(os.listdir(annot)):
+    for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
         try:
             if i.startswith("airplane"):
@@ -105,7 +105,7 @@ def data_generator():
                 filename = i.split(".")[0] + ".jpg"
                 print(e, filename)
                 image = cv2.imread(os.path.join(path, filename))
-                df = pd.read_csv(os.path.join(annot, i))
+                df = pd.read_csv(os.path.join(annotation, i))
                 gtvalues = []
                 for row in df.iterrows():
                     x1 = int(row[1][0].split(" ")[0])
@@ -195,19 +195,19 @@ def train(NewModel=False, GenData=False):
         model_final = Model(inputs=vgg_model.input, outputs=predictions)
         opt = Adam(lr=0.0001)
         model_final.compile(
-            loss=keras.losses.CategoricalCrossentropy(),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
             optimizer=opt,
             metrics=["accuracy"]
         )
     else:
-        model_final = keras.models.load_model("RCNN.h5")
+        model_final = tf.keras.models.load_model("RCNN.h5")
 
     if GenData:
         x_new, y_new = data_generator()
     else:
         x_new, y_new = data_loader()
 
-    lenc = MyLabelBinarizer()
+    lenc = OneHot()
     y = lenc.fit_transform(y_new)
     x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
     trdata = ImageDataGenerator(
@@ -268,9 +268,9 @@ def train(NewModel=False, GenData=False):
 
 
 def test_model_cl():
-    model_final = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_final = tf.keras.models.load_model("ieeercnn_vgg16_1.h5")
     X_new, y_new = data_loader()
-    lenc = MyLabelBinarizer()
+    lenc = OneHot()
     Y = lenc.fit_transform(y_new)
     X_train, X_test, y_train, y_test = train_test_split(X_new, Y, test_size=0.10)
     for test in X_test:
@@ -288,7 +288,7 @@ def test_model_cl():
 
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_loaded = tf.keras.models.load_model("ieeercnn_vgg16_1.h5")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):

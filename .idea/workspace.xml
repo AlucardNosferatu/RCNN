@@ -20,7 +20,15 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="" />
+    <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/RPN_Loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/withRPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/FastRCNN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/FastRCNN.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parse.py" beforeDir="false" afterPath="$PROJECT_DIR$/parse.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,6 +62,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/RCNN.py" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
     <configuration name="RCNN" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
@@ -160,6 +169,10 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state width="1515" height="213" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590223305003" />
+    <state x="270" y="77" key="SettingsEditor" timestamp="1590375416171">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1590375416171" />
     <state x="608" y="203" key="refactoring.ChangeSignatureDialog" timestamp="1589986519119">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
