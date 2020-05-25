@@ -3,3 +3,7 @@ Images/
 *.pkl
 *.h5
 ieeercnn_vgg16_1.h5py/
+*.jpg
+*.xml
+TestResults/VOC2007（21分类）/
+TestResults/机场俯拍二分类/
