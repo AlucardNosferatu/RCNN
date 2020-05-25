@@ -31,8 +31,8 @@ class OneHot(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
-path = "Images"
-annotation = "Airplanes_Annotations"
+path = "ProcessedData\\Images"
+annotation = "ProcessedData\\Airplanes_Annotations"
 
 
 def demo():
@@ -313,6 +313,3 @@ def test_model_od():
             plt.figure()
             plt.imshow(imout)
             plt.show()
-
-
-train(NewModel=True, GenData=True)
