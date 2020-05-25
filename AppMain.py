@@ -1,5 +1,5 @@
 from RCNN import path
-from forVOC2007 import transfer_model_train,data_generator
+from forVOC2007 import transfer_model_train, data_generator
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
@@ -55,7 +55,7 @@ def time_test(model_path="TrainedModels\\RCNN.h5", file_path=path):
                 classify_elapsed.append(classify_end - classify_start)
                 print("单目标分类预测时间：" + str(classify_end - classify_start))
                 # endregion
-                if np.max(out) > 0.3:
+                if np.max(out) > 0.97 and np.argmax(out) != 0:
                     image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
         record.append("单目标分类预测时间（最大值）：" + str(max(classify_elapsed)))
         record.append("单目标分类预测时间（最小值）：" + str(min(classify_elapsed)))
@@ -76,6 +76,6 @@ def time_test(model_path="TrainedModels\\RCNN.h5", file_path=path):
         plt.close()
 
 
-# time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
+time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
 # transfer_model_train()
-data_generator()
+# data_generator()

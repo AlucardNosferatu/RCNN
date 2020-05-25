@@ -158,7 +158,7 @@ def data_generator():
 def data_loader(show=False, balance=False):
     train_images = []
     train_labels = []
-    for i in tqdm(range(0, 150)):
+    for i in tqdm(range(0, 1000)):
         ti_pkl = open('ProcessedData\\train_images_' + str(i) + '.pkl', 'rb')
         tl_pkl = open('ProcessedData\\train_labels_' + str(i) + '.pkl', 'rb')
         train_images += pickle.load(ti_pkl)
@@ -170,7 +170,7 @@ def data_loader(show=False, balance=False):
     np.random.set_state(state)
     np.random.shuffle(train_labels)
     if balance:
-        while train_labels.count(0) > 0.5 * len(train_labels):
+        while train_labels.count(0) > 0.7 * len(train_labels):
             print("Negative Sample: " + str(int(train_labels.count(0) * 100 / len(train_labels))) + "%")
             index = train_labels.index(0)
             del train_images[index]
@@ -215,7 +215,7 @@ def transfer_model_train():
     model_final = tf.keras.models.load_model("TrainedModels\\RCNN-VOC2007.h5")
     x_new, y_new = data_loader(False, True)
     checkpoint = ModelCheckpoint(
-        "RCNN-VOC2007.h5",
+        "TrainedModels\\RCNN-VOC2007.h5",
         monitor='val_loss',
         verbose=1,
         save_best_only=False,
