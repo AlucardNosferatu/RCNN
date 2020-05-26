@@ -12,6 +12,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from RPN_Loss import RPNLoss
 
 tf.compat.v1.disable_eager_execution()
 
@@ -93,7 +94,18 @@ def get_iou(bb1, bb2):
     return iou
 
 
-def data_generator():
+def getROIs_fromRPN(image):
+    image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
+    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    result = model_final.predict(image.reshape((1, 224, 224, 3)))
+    result = result.reshape((200, 4))
+    result_list = []
+    for i in range(200):
+        result_list.append(list(result[i, :].reshape(4).astype('uint32')))
+    return result_list
+
+
+def data_generator(UseRPN=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
@@ -114,19 +126,22 @@ def data_generator():
                     y2 = int(row[1][0].split(" ")[3])
                     gtvalues.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                     # 把标签的坐标数据存入gtvalues
-
-                ss.setBaseImage(image)
-                ss.switchToSelectiveSearchFast()
-                ssresults = ss.process()
+                ss_results = []
+                if UseRPN:
+                    ss_results = getROIs_fromRPN(image)
+                else:
+                    ss.setBaseImage(image)
+                    ss.switchToSelectiveSearchFast()
+                    ss_results = ss.process()
                 # 加载SS ROI提出器
 
-                imout = image.copy()
+                image_out = image.copy()
                 counter = 0
-                falsecounter = 0
+                false_counter = 0
                 flag = 0
                 fflag = 0
                 bflag = 0
-                for e, result in enumerate(ssresults):
+                for e, result in enumerate(ss_results):
                     if e < 2000 and flag == 0:
                         # 对SS产生的头2k个结果（坐标）进行处理
                         for gtval in gtvalues:
@@ -138,21 +153,21 @@ def data_generator():
                                 # 选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
                                     # 交并比阈值0.7
-                                    timage = imout[y:y + h, x:x + w]
+                                    timage = image_out[y:y + h, x:x + w]
                                     resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(1)
                                     counter += 1
                             else:
                                 fflag = 1
-                            if falsecounter < 30:
+                            if false_counter < 30:
                                 # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
-                                    timage = imout[y:y + h, x:x + w]
+                                    timage = image_out[y:y + h, x:x + w]
                                     resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(0)
-                                    falsecounter += 1
+                                    false_counter += 1
                             else:
                                 bflag = 1
                         if fflag == 1 and bflag == 1:
@@ -162,12 +177,12 @@ def data_generator():
             print(e)
             print("error in " + filename)
             continue
-    TI_PKL = open('train_images.pkl', 'wb')
-    TL_PKL = open('train_labels.pkl', 'wb')
-    pickle.dump(train_images, TI_PKL)
-    pickle.dump(train_labels, TL_PKL)
-    TI_PKL.close()
-    TL_PKL.close()
+    ti_pkl = open('train_images.pkl', 'wb')
+    tl_pkl = open('train_labels.pkl', 'wb')
+    pickle.dump(train_images, ti_pkl)
+    pickle.dump(train_labels, tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
     X_new = np.array(train_images)
     y_new = np.array(train_labels)
     return X_new, y_new
@@ -313,3 +328,6 @@ def test_model_od():
             plt.figure()
             plt.imshow(imout)
             plt.show()
+
+
+data_generator()

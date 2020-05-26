@@ -2,6 +2,7 @@
   <dictionary name="16413">
     <words>
       <w>imagenet</w>
+      <w>pred</w>
       <w>softmax</w>
     </words>
   </dictionary>

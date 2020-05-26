@@ -41,6 +41,7 @@ def get_iou(bb1, bb2):
 
 def rois_pack_up(ss_results, gt_values, shape):
     skip = False
+    x_y_w_h = True
     rois_count_per_img = 1000
     rois = []
     length = len(rois)
@@ -64,14 +65,24 @@ def rois_pack_up(ss_results, gt_values, shape):
 
         # region Append ROI to list
         if iou > 0.7:
-            x1 /= shape[0]
-            x2 /= shape[0]
-            y1 /= shape[1]
-            y2 /= shape[1]
-            x1 *= 224
-            x2 *= 224
-            y1 *= 224
-            y2 *= 224
+            if x_y_w_h:
+                x1 /= shape[0]
+                x2 = w / shape[0]
+                y1 /= shape[1]
+                y2 = h / shape[1]
+                x1 *= 224
+                x2 *= 224
+                y1 *= 224
+                y2 *= 224
+            else:
+                x1 /= shape[0]
+                x2 /= shape[0]
+                y1 /= shape[1]
+                y2 /= shape[1]
+                x1 *= 224
+                x2 *= 224
+                y1 *= 224
+                y2 *= 224
             rois.append(
                 [
                     int(x1),
@@ -176,6 +187,7 @@ def prototype_model_build():
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
     after_flatten = vgg_model.layers[19].output
     roi_proposal = []
+    print("VGG16 imported.")
     for i in tqdm(range(roi_count)):
         x = Dense(16, activation='relu')(after_flatten)
         x = Dense(8, activation='relu')(x)
@@ -189,11 +201,13 @@ def prototype_model_build():
         optimizer=opt,
         metrics=["accuracy"]
     )
-    tf.keras.utils.plot_model(
-        model_final, to_file='model.png', show_shapes=False, show_layer_names=False,
-        rankdir='TB', expand_nested=False, dpi=96
-    )
+    print("Model compiled.")
+    # tf.keras.utils.plot_model(
+    #     model_final, to_file='model.png', show_shapes=False, show_layer_names=False,
+    #     rankdir='TB', expand_nested=False, dpi=96
+    # )
     model_final.save("TrainedModels\\RPN_Prototype.h5")
+    print("Model saved.")
     return model_final
 
 
@@ -209,6 +223,7 @@ def prototype_model_train():
         mode='auto',
         save_freq='epoch'
     )
+
     with tf.device('/gpu:0'):
         gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
         for gpu in gpu_list:
@@ -218,34 +233,57 @@ def prototype_model_train():
             y_new,
             callbacks=[checkpoint],
             epochs=100,
-            batch_size=8
+            verbose=1,
+            batch_size=16
         )
 
 
 def prototype_model_test():
+    x_y_w_h = True
     x_new, y_new = data_loader()
     model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
-    for i in range(x_new.shape[0]):
+    for i in range(0, x_new.shape[0], 5):
+        count = 0
         result = model_final.predict(x_new[i, :, :, :].reshape((1, 224, 224, 3)))
         image_out = x_new[i, :, :, :]
         b, g, r = cv2.split(image_out)
         image_out = cv2.merge([r, g, b])
+        gt_values = []
         for roi in tqdm(range(200)):
-            print(result)
-            x1 = int(result[:, roi, 0])
-            y1 = int(result[:, roi, 1])
-            x2 = int(result[:, roi, 2])
-            y2 = int(result[:, roi, 3])
-            image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
-        for roi in tqdm(range(200)):
-            print(y_new[i, roi, :])
             x1 = int(y_new[i, roi, 0])
             y1 = int(y_new[i, roi, 1])
             x2 = int(y_new[i, roi, 2])
             y2 = int(y_new[i, roi, 3])
-            image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
+            if x_y_w_h:
+                x2 += x1
+                y2 += y1
+            if x1 == x2 or y1 == y2:
+                print("zero area error!")
+            gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+        for roi in tqdm(range(200)):
+            x1 = int(result[:, roi, 0])
+            y1 = int(result[:, roi, 1])
+            x2 = int(result[:, roi, 2])
+            y2 = int(result[:, roi, 3])
+            if x_y_w_h:
+                x2 += x1
+                y2 += y1
+            if x1 >= x2 or y1 >= y2:
+                print("zero area error!")
+                continue
+            iou_list = []
+            for gt_val in gt_values:
+                temp = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+                iou_list.append(temp)
+            if max(iou_list) > 0.7:
+                count += 1
+                image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+            else:
+                image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
+        plt.figure()
         plt.imshow(image_out)
-        plt.show()
+        plt.savefig("TestResults\\第" + str(i) + "次测试，命中比例：" + str(int(100 * count / 200)) + "%.jpg")
+        plt.close()
 
 
-prototype_model_test()
+prototype_model_train()
