@@ -36,44 +36,6 @@ path = "ProcessedData\\Images"
 annotation = "ProcessedData\\Airplanes_Annotations"
 
 
-def demo():
-    for e, i in enumerate(os.listdir(annotation)):
-        if e < 10:
-            filename = i.split(".")[0] + ".jpg"
-            img = cv2.imread(os.path.join(path, filename))
-            path_instance = os.path.join(annotation, i)
-            f = open(path_instance)
-            df = pd.read_csv(f)
-            f.close()
-            plt.imshow(img)
-            plt.show()
-            for row in df.iterrows():
-                x1 = int(row[1][0].split(" ")[0])
-                y1 = int(row[1][0].split(" ")[1])
-                x2 = int(row[1][0].split(" ")[2])
-                y2 = int(row[1][0].split(" ")[3])
-                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            plt.figure()
-            plt.imshow(img)
-            plt.show()
-            break
-    cv2.setUseOptimized(True);
-    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    im = cv2.imread(os.path.join(path, "42850.jpg"))
-    ss.setBaseImage(im)
-    ss.switchToSelectiveSearchFast()
-    rects = ss.process()
-    imOut = im.copy()
-    for i, rect in (enumerate(rects)):
-        x, y, w, h = rect
-        #     print(x,y,w,h)
-        #     imOut = imOut[x:x+w,y:y+h]
-        cv2.rectangle(imOut, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
-    # plt.figure()
-    plt.imshow(imOut)
-    plt.show()
-
-
 def get_iou(bb1, bb2):
     assert bb1['x1'] < bb1['x2']
     assert bb1['y1'] < bb1['y2']
@@ -94,9 +56,8 @@ def get_iou(bb1, bb2):
     return iou
 
 
-def getROIs_fromRPN(image):
+def getROIs_fromRPN(image, model_final):
     image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
-    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
     result = model_final.predict(image.reshape((1, 224, 224, 3)))
     result = result.reshape((200, 4))
     result_list = []
@@ -105,99 +66,111 @@ def getROIs_fromRPN(image):
     return result_list
 
 
-def data_generator(UseRPN=True):
+def data_generator(UseRPN=True, balance=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
     for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
-        try:
-            if i.startswith("airplane"):
-                # 只有名称带airplane才是有目标的存在的样本
-                filename = i.split(".")[0] + ".jpg"
-                print(e, filename)
-                image = cv2.imread(os.path.join(path, filename))
-                df = pd.read_csv(os.path.join(annotation, i))
-                gtvalues = []
-                for row in df.iterrows():
-                    x1 = int(row[1][0].split(" ")[0])
-                    y1 = int(row[1][0].split(" ")[1])
-                    x2 = int(row[1][0].split(" ")[2])
-                    y2 = int(row[1][0].split(" ")[3])
-                    gtvalues.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
-                    # 把标签的坐标数据存入gtvalues
-                ss_results = []
-                if UseRPN:
-                    ss_results = getROIs_fromRPN(image)
-                else:
-                    ss.setBaseImage(image)
-                    ss.switchToSelectiveSearchFast()
-                    ss_results = ss.process()
-                # 加载SS ROI提出器
+        if i.startswith("airplane"):
+            # 只有名称带airplane才是有目标的存在的样本
+            filename = i.split(".")[0] + ".jpg"
+            print(e, filename)
+            image = cv2.imread(os.path.join(path, filename))
+            df = pd.read_csv(os.path.join(annotation, i))
+            gt_values = []
+            for row in df.iterrows():
+                x1 = int(row[1][0].split(" ")[0])
+                y1 = int(row[1][0].split(" ")[1])
+                x2 = int(row[1][0].split(" ")[2])
+                y2 = int(row[1][0].split(" ")[3])
+                gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+                # 把标签的坐标数据存入gt_values
+            if UseRPN:
+                ss_results = getROIs_fromRPN(image, model_final)
+            else:
+                ss.setBaseImage(image)
+                ss.switchToSelectiveSearchFast()
+                ss_results = ss.process()
+            # 加载SS ROI提出器
 
-                image_out = image.copy()
-                counter = 0
-                false_counter = 0
-                flag = 0
-                fflag = 0
-                bflag = 0
-                for e, result in enumerate(ss_results):
-                    if e < 2000 and flag == 0:
+            image_out = image.copy()
+            counter = 0
+            false_counter = 0
+            flag = 0
+            f_flag = 0
+            b_flag = 0
+            for e_roi, result in enumerate(ss_results):
+                try:
+                    if e_roi < 200 and flag == 0:
                         # 对SS产生的头2k个结果（坐标）进行处理
-                        for gtval in gtvalues:
+                        for gt_val in gt_values:
                             # 对这张图上多个标签坐标进行处理
                             x, y, w, h = result
-                            iou = get_iou(gtval, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+                            assert w > 0
+                            assert h > 0
+                            iou = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
                             # 计算候选坐标和这一标签坐标的交并比
                             if counter < 30:
                                 # 选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
                                     # 交并比阈值0.7
-                                    timage = image_out[y:y + h, x:x + w]
-                                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
+                                    target_image = image_out[y:y + h, x:x + w]
+                                    resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(1)
                                     counter += 1
                             else:
-                                fflag = 1
+                                f_flag = 1
                             if false_counter < 30:
                                 # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
-                                    timage = image_out[y:y + h, x:x + w]
-                                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
+                                    target_image = image_out[y:y + h, x:x + w]
+                                    resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(0)
                                     false_counter += 1
                             else:
-                                bflag = 1
-                        if fflag == 1 and bflag == 1:
+                                b_flag = 1
+                        if f_flag == 1 and b_flag == 1:
                             # print("inside")
                             flag = 1
-        except Exception as e:
-            print(e)
-            print("error in " + filename)
-            continue
-    ti_pkl = open('train_images.pkl', 'wb')
-    tl_pkl = open('train_labels.pkl', 'wb')
+                except Exception as e:
+                    print(repr(e))
+                    print("error in " + filename + "_" + str(e_roi))
+                    continue
+    if balance:
+        while train_labels.count(0) > 0.6 * len(train_labels):
+            print("Negative ratio: " + str(int(100 * train_labels.count(0) / len(train_labels))) + "%")
+            index = train_labels.index(0)
+            del train_labels[index]
+            del train_images[index]
+    ti_pkl = open('ProcessedData\\train_images_cnn.pkl', 'wb')
+    tl_pkl = open('ProcessedData\\train_labels_cnn.pkl', 'wb')
     pickle.dump(train_images, ti_pkl)
     pickle.dump(train_labels, tl_pkl)
     ti_pkl.close()
     tl_pkl.close()
-    X_new = np.array(train_images)
+    x_new = np.array(train_images)
     y_new = np.array(train_labels)
-    return X_new, y_new
+    return x_new, y_new
 
 
 def data_loader():
-    TI_PKL = open('train_images.pkl', 'rb')
-    TL_PKL = open('train_labels.pkl', 'rb')
-    train_images = pickle.load(TI_PKL)
-    train_labels = pickle.load(TL_PKL)
-    TI_PKL.close()
-    TL_PKL.close()
-    X_new = np.array(train_images)
+    ti_pkl = open('ProcessedData\\train_images_cnn.pkl', 'rb')
+    tl_pkl = open('ProcessedData\\train_labels_cnn.pkl', 'rb')
+    train_images = pickle.load(ti_pkl)
+    train_labels = pickle.load(tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
+    state = np.random.get_state()
+    np.random.shuffle(train_images)
+    np.random.set_state(state)
+    np.random.shuffle(train_labels)
+    x_new = np.array(train_images)
     y_new = np.array(train_labels)
-    return X_new, y_new
+    return x_new, y_new
 
 
 def train(NewModel=False, GenData=False):
@@ -205,8 +178,8 @@ def train(NewModel=False, GenData=False):
         vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
         for layers in vgg_model.layers[:15]:
             layers.trainable = False
-        X = vgg_model.layers[-2].output
-        predictions = Dense(2, activation="softmax")(X)
+        x = vgg_model.layers[-2].output
+        predictions = Dense(2, activation="softmax")(x)
         model_final = Model(inputs=vgg_model.input, outputs=predictions)
         opt = Adam(lr=0.0001)
         model_final.compile(
@@ -215,36 +188,34 @@ def train(NewModel=False, GenData=False):
             metrics=["accuracy"]
         )
     else:
-        model_final = tf.keras.models.load_model("RCNN.h5")
-
+        model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     if GenData:
         x_new, y_new = data_generator()
     else:
         x_new, y_new = data_loader()
-
-    lenc = OneHot()
-    y = lenc.fit_transform(y_new)
+    one_hot = OneHot()
+    y = one_hot.fit_transform(y_new)
     x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
-    trdata = ImageDataGenerator(
+    train_gen = ImageDataGenerator(
         horizontal_flip=True,
         vertical_flip=True,
         rotation_range=90
     )
-    traindata = trdata.flow(
+    train_data = train_gen.flow(
         x=x_train,
         y=y_train
     )
-    tsdata = ImageDataGenerator(
+    test_gen = ImageDataGenerator(
         horizontal_flip=True,
         vertical_flip=True,
         rotation_range=90
     )
-    testdata = tsdata.flow(
+    test_data = test_gen.flow(
         x=x_test,
         y=y_test
     )
     checkpoint = ModelCheckpoint(
-        "RCNN.h5",
+        "TrainedModels\\RCNN.h5",
         monitor='val_loss',
         verbose=1,
         save_best_only=False,
@@ -252,23 +223,16 @@ def train(NewModel=False, GenData=False):
         mode='auto',
         save_freq='epoch'
     )
-    early = EarlyStopping(
-        monitor='val_loss',
-        min_delta=0,
-        patience=100,
-        verbose=1,
-        mode='auto'
-    )
     with tf.device('/gpu:0'):
-        gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
-        print(gpus)
-        for gpu in gpus:
+        gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
+        print(gpu_list)
+        for gpu in gpu_list:
             tf.config.experimental.set_memory_growth(gpu, True)
         hist = model_final.fit_generator(
             callbacks=[checkpoint],
-            validation_data=testdata,
+            validation_data=test_data,
             validation_steps=2,
-            generator=traindata,
+            generator=train_data,
             steps_per_epoch=10,
             epochs=1000
         )
@@ -301,33 +265,46 @@ def test_model_cl():
         plt.show()
 
 
-def test_model_od():
+def test_model_od(UseRPN=True):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = tf.keras.models.load_model("ieeercnn_vgg16_1.h5")
+    model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
+    print("Classifier has been loaded.")
+    model_rpn = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    print("RPN has been loaded.")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
             z += 1
             img = cv2.imread(os.path.join(path, i))
-            imout = img.copy()
-
-            # Selective Search will be replaced by ROI proposal
-            ss.setBaseImage(img)
-            ss.switchToSelectiveSearchFast()
-            ssresults = ss.process()
-
-            for e, result in enumerate(ssresults):
-                if e < 2000:
-                    x, y, w, h = result
-                    timage = imout[y:y + h, x:x + w]
-                    resized = cv2.resize(timage, (224, 224), interpolation=cv2.INTER_AREA)
-                    img = np.expand_dims(resized, axis=0)
-                    out = model_loaded.predict(img)
-                    if out[0][0] > 0.65:
-                        cv2.rectangle(imout, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+            image_out = img.copy()
+            if UseRPN:
+                ss_results = getROIs_fromRPN(image_out, model_rpn)
+            else:
+                ss.setBaseImage(img)
+                ss.switchToSelectiveSearchFast()
+                ss_results = ss.process()
+            for e_roi, result in enumerate(ss_results):
+                if e_roi < 200:
+                    try:
+                        x, y, w, h = result
+                        assert w > 0
+                        assert h > 0
+                        target_image = image_out[y:y + h, x:x + w]
+                        resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
+                        plt.figure()
+                        plt.imshow(resized)
+                        plt.show()
+                        img = np.expand_dims(resized, axis=0)
+                        out = model_cnn.predict(img)
+                        if out[0][0] > out[0][1]:
+                            image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                    except Exception as e:
+                        print(repr(e))
+                        print("error in " + i + "_" + str(e_roi))
+                        continue
             plt.figure()
-            plt.imshow(imout)
-            plt.show()
+            plt.imshow(image_out)
+            plt.savefig("TestResults\\"+i+"_od_test.jpg")
 
 
-data_generator()
+test_model_od()

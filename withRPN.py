@@ -160,8 +160,8 @@ def data_generator():
                 gt_values,
                 image_out
             )
-    ti_pkl = open('ProcessedData\\train_images.pkl', 'wb')
-    tl_pkl = open('ProcessedData\\train_labels.pkl', 'wb')
+    ti_pkl = open('ProcessedData\\train_images_rpn.pkl', 'wb')
+    tl_pkl = open('ProcessedData\\train_labels_rpn.pkl', 'wb')
     pickle.dump(train_images, ti_pkl)
     pickle.dump(train_labels, tl_pkl)
     ti_pkl.close()
@@ -172,8 +172,8 @@ def data_generator():
 
 
 def data_loader():
-    ti_pkl = open('ProcessedData\\train_images.pkl', 'rb')
-    tl_pkl = open('ProcessedData\\train_labels.pkl', 'rb')
+    ti_pkl = open('ProcessedData\\train_images_rpn.pkl', 'rb')
+    tl_pkl = open('ProcessedData\\train_labels_rpn.pkl', 'rb')
     train_images = pickle.load(ti_pkl)
     train_labels = pickle.load(tl_pkl)
     ti_pkl.close()
@@ -284,6 +284,3 @@ def prototype_model_test():
         plt.imshow(image_out)
         plt.savefig("TestResults\\第" + str(i) + "次测试，命中比例：" + str(int(100 * count / 200)) + "%.jpg")
         plt.close()
-
-
-prototype_model_train()

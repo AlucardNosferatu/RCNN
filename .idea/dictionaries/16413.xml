@@ -4,6 +4,7 @@
       <w>imagenet</w>
       <w>pred</w>
       <w>softmax</w>
+      <w>uint</w>
     </words>
   </dictionary>
 </component>
