@@ -155,7 +155,7 @@ def input_generator():
     voc_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2007\\'
     img_path = voc_path + 'JPEGImages\\'
     annotation_path = voc_path + 'Annotations\\'
-    batch_size = 32
+    batch_size = 64
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []

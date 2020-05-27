@@ -284,36 +284,3 @@ def prototype_model_test():
         plt.imshow(image_out)
         plt.savefig("TestResults\\第" + str(i) + "次测试，命中比例：" + str(int(100 * count / 200)) + "%.jpg")
         plt.close()
-
-
-def copy_model_build():
-    k = 9
-    feature_map_tile = Input(shape=(None, None, 1536))
-    convolution_3x3 = Conv2D(
-        filters=512,
-        kernel_size=(3, 3),
-        name="3x3"
-    )(feature_map_tile)
-    output_deltas = Conv2D(
-        filters=4 * k,
-        kernel_size=(1, 1),
-        activation="linear",
-        kernel_initializer="uniform",
-        name="deltas1"
-    )(convolution_3x3)
-
-    output_scores = Conv2D(
-        filters=1 * k,
-        kernel_size=(1, 1),
-        activation="sigmoid",
-        kernel_initializer="uniform",
-        name="scores1"
-    )(convolution_3x3)
-    model_rpn = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
-    model_rpn.compile(optimizer='adam', loss={'scores1': 'binary_crossentropy', 'deltas1': 'mse'})
-    tf.keras.utils.plot_model(
-        model_rpn, to_file='model.png', show_shapes=True, show_layer_names=False,
-        rankdir='TB', expand_nested=False, dpi=96
-    )
-    model_rpn.save("TrainedModels\\RPN_Prototype.h5")
-
