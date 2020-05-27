@@ -4,10 +4,10 @@ import numpy as np
 import numpy.random as npr
 import tensorflow.keras.backend as K
 from tensorflow.keras.applications import VGG16
-from tensorflow.keras.layers import Flatten, Dense, BatchNormalization, Layer, Input
-from tensorflow.keras.models import Model
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.layers import Flatten, Dense, BatchNormalization, Layer, Input
 from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, \
     loss_cls, smoothL1, parse_label, filter_boxes, \
     clip_boxes, py_cpu_nms, bbox_transform_inv
@@ -78,11 +78,10 @@ pretrained_model = Model(inputs=pretrained_model.input, outputs=pretrained_model
 
 rpn_model = load_model('..\\TrainedModels\\RPN_Sample.h5',
                        custom_objects={'loss_cls': loss_cls, 'smoothL1': smoothL1})
-not_used = rpn_model.predict(np.load('n02676566_6914')['fc'])
 
 
-def produce_batch(filepath, gt_boxes, h_w, category):
-    img = load_img(filepath)
+def produce_batch(file_path, gt_boxes, h_w, category):
+    img = load_img(file_path)
     img_width = 224
     img_height = 224
     img = img.resize((int(img_width), int(img_height)))
@@ -125,18 +124,18 @@ def produce_batch(filepath, gt_boxes, h_w, category):
     proposals = proposals[keep, :]
     scores = scores[keep]
 
-    # sort socres and only keep top 6000.
-    pre_nms_topN = 6000
+    # sort scores and only keep top 6000.
+    pre_nms_top_n = 6000
     order = scores.ravel().argsort()[::-1]
-    if pre_nms_topN > 0:
-        order = order[:pre_nms_topN]
+    if pre_nms_top_n > 0:
+        order = order[:pre_nms_top_n]
     proposals = proposals[order, :]
     scores = scores[order]
     # apply NMS to to 6000, and then keep top 300
-    post_nms_topN = 300
+    post_nms_top_n = 300
     keep = py_cpu_nms(np.hstack((proposals, scores)), 0.7)
-    if post_nms_topN > 0:
-        keep = keep[:post_nms_topN]
+    if post_nms_top_n > 0:
+        keep = keep[:post_nms_top_n]
     proposals = proposals[keep, :]
     scores = scores[keep]
     # add gt_boxes to proposals.
@@ -246,7 +245,7 @@ def worker(path):
 
 ##################   start train   #######################
 # model.load_weights('./rcnn_weights_1.hdf5')
-from keras.callbacks import ModelCheckpoint
+
 
 checkpointer = ModelCheckpoint(filepath='./rcnn_weights_2.hdf5', monitor='loss', verbose=1, save_best_only=True)
 model.fit_generator(worker('/ImageSets/DET/train_*.txt'), steps_per_epoch=1000, epochs=100, callbacks=[checkpointer])

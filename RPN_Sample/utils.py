@@ -16,9 +16,9 @@ def parse_label(xml_file):
     w_scale = 1
     h_scale = 1
     for x in root.iter('width'):
-        w_scale = 224 / float(x.text)
+        w_scale = 224 / int(float(x.text))
     for x in root.iter('height'):
-        h_scale = 224 / float(x.text)
+        h_scale = 224 / int(float(x.text))
     category = []
     xmin = []
     ymin = []
@@ -27,13 +27,13 @@ def parse_label(xml_file):
     for x in root.iter('name'):
         category.append(x.text)
     for x in root.iter('xmin'):
-        xmin.append(int(x.text) * w_scale)
+        xmin.append(int(float(x.text)) * w_scale)
     for x in root.iter('ymin'):
-        ymin.append(int(x.text) * h_scale)
+        ymin.append(int(float(x.text)) * h_scale)
     for x in root.iter('xmax'):
-        xmax.append(int(x.text) * w_scale)
+        xmax.append(int(float(x.text)) * w_scale)
     for x in root.iter('ymax'):
-        ymax.append(int(x.text) * h_scale)
+        ymax.append(int(float(x.text)) * h_scale)
     gt_boxes = [list(box) for box in zip(xmin, ymin, xmax, ymax)]
     return category, np.asarray(gt_boxes, np.float), (h_scale, w_scale)
 

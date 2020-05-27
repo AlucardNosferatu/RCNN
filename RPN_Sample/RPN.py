@@ -152,10 +152,10 @@ def produce_batch(pretrained_model, file_path, gt_boxes):
 
 
 def input_generator():
-    voc_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2012\\'
+    voc_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2007\\'
     img_path = voc_path + 'JPEGImages\\'
     annotation_path = voc_path + 'Annotations\\'
-    batch_size = 64
+    batch_size = 32
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -170,8 +170,11 @@ def input_generator():
                             category, gt_boxes, _ = parse_label(annotation_path + line.split()[0] + '.xml')
                             if len(gt_boxes) == 0:
                                 continue
-                            tiles, labels, bboxes = produce_batch(backbone_network, img_path + line.split()[0] + '.jpg',
-                                                                  gt_boxes)
+                            tiles, labels, bounding_boxes = produce_batch(
+                                backbone_network,
+                                img_path + line.split()[0] + '.jpg',
+                                gt_boxes
+                            )
                         except Exception:
                             print('parse label or produce batch failed: for: ' + line.split()[0])
                             traceback.print_exc()
@@ -179,7 +182,7 @@ def input_generator():
                         for i in range(len(tiles)):
                             batch_tiles.append(tiles[i])
                             batch_labels.append(labels[i])
-                            batch_bounding_boxes.append(bboxes[i])
+                            batch_bounding_boxes.append(bounding_boxes[i])
                             if len(batch_tiles) == batch_size:
                                 a = np.asarray(batch_tiles)
                                 b = np.asarray(batch_labels)
@@ -201,9 +204,9 @@ for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 
 checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
-                             monitor='val_loss',
+                             monitor='loss',
                              verbose=1,
-                             save_best_only=False,
+                             save_best_only=True,
                              save_weights_only=False,
                              mode='auto',
                              save_freq='epoch'
