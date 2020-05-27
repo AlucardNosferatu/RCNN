@@ -46,12 +46,12 @@ def build_RPN():
     # endregion
 
 
-def produce_batch(pretrained_model, filepath, gt_boxes):
+def produce_batch(pretrained_model, file_path, gt_boxes):
     bg_fg_frac = 2
     k = 9
 
     # region Get feature map from backbone network (VGG16)
-    img = load_img(filepath)
+    img = load_img(file_path)
     img_width = 224
     img_height = 224
     img = img.resize((int(img_width), int(img_height)))
@@ -135,8 +135,7 @@ def produce_batch(pretrained_model, filepath, gt_boxes):
     batch_inds = (batch_inds / k).astype(np.int)
     full_labels = unmap(labels, total_anchors, inds_inside, fill=-1)
     batch_label_targets = full_labels.reshape(-1, 1, 1, 1 * k)[batch_inds]
-    bbox_targets = np.zeros((len(inds_inside), 4), dtype=np.float32)
-    # bbox_targets = bbox_transform(anchors, gt_boxes[argmax_overlaps, :]
+
     pos_anchors = all_anchors[inds_inside[labels == 1]]
     bbox_targets = bbox_transform(pos_anchors, gt_boxes[argmax_overlaps, :][labels == 1])
     bbox_targets = unmap(bbox_targets, total_anchors, inds_inside[labels == 1], fill=0)
@@ -153,22 +152,25 @@ def produce_batch(pretrained_model, filepath, gt_boxes):
 
 
 def input_generator():
+    voc_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2012\\'
+    img_path = voc_path + 'JPEGImages\\'
+    annotation_path = voc_path + 'Annotations\\'
+    batch_size = 64
     batch_tiles = []
     batch_labels = []
-    batch_bboxes = []
-    pretrained_model = VGG16(include_top=True, weights="imagenet")
-    pretrained_model = Model(inputs=pretrained_model.input, outputs=pretrained_model.layers[17].output)
-    count = 0
+    batch_bounding_boxes = []
+    backbone_network = VGG16(include_top=True, weights="imagenet")
+    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
     while 1:
-        for fname in glob.glob(ILSVRC_dataset_path + 'ImageSets\\Main\\*_train.txt'):
-            with open(fname, 'r') as f:
+        for file_name in glob.glob(voc_path + 'ImageSets\\Main\\*_train.txt'):
+            with open(file_name, 'r') as f:
                 for line in f:
                     if 'extra' not in line:
                         try:
-                            category, gt_boxes, _ = parse_label(anno_path + line.split()[0] + '.xml')
+                            category, gt_boxes, _ = parse_label(annotation_path + line.split()[0] + '.xml')
                             if len(gt_boxes) == 0:
                                 continue
-                            tiles, labels, bboxes = produce_batch(pretrained_model, img_path + line.split()[0] + '.jpg',
+                            tiles, labels, bboxes = produce_batch(backbone_network, img_path + line.split()[0] + '.jpg',
                                                                   gt_boxes)
                         except Exception:
                             print('parse label or produce batch failed: for: ' + line.split()[0])
@@ -177,38 +179,35 @@ def input_generator():
                         for i in range(len(tiles)):
                             batch_tiles.append(tiles[i])
                             batch_labels.append(labels[i])
-                            batch_bboxes.append(bboxes[i])
-                            if len(batch_tiles) == BATCH_SIZE:
+                            batch_bounding_boxes.append(bboxes[i])
+                            if len(batch_tiles) == batch_size:
                                 a = np.asarray(batch_tiles)
                                 b = np.asarray(batch_labels)
-                                c = np.asarray(batch_bboxes)
+                                c = np.asarray(batch_bounding_boxes)
                                 if not a.any() or not b.any() or not c.any():
                                     print("empty array found.")
                                     batch_tiles = []
                                     batch_labels = []
-                                    batch_bboxes = []
+                                    batch_bounding_boxes = []
                                     continue
                                 yield a, [b, c]
                                 batch_tiles = []
                                 batch_labels = []
-                                batch_bboxes = []
+                                batch_bounding_boxes = []
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
+for gpu in gpu_list:
+    tf.config.experimental.set_memory_growth(gpu, True)
 
-ILSVRC_dataset_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2012\\'
-img_path = ILSVRC_dataset_path + 'JPEGImages\\'
-anno_path = ILSVRC_dataset_path + 'Annotations\\'
-
-BATCH_SIZE = 32
-checkpointer = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
-                               monitor='val_loss',
-                               verbose=1,
-                               save_best_only=False,
-                               save_weights_only=False,
-                               mode='auto',
-                               save_freq='epoch'
-                               )
+checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
+                             monitor='val_loss',
+                             verbose=1,
+                             save_best_only=False,
+                             save_weights_only=False,
+                             mode='auto',
+                             save_freq='epoch'
+                             )
 if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
     model = tf.keras.models.load_model(
         '..\\TrainedModels\\RPN_Sample.h5',
@@ -219,4 +218,5 @@ if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
     )
 else:
     model = build_RPN()
-model.fit_generator(input_generator(), steps_per_epoch=10, epochs=800, callbacks=[checkpointer])
+with tf.device('/gpu:0'):
+    model.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])

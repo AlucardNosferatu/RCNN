@@ -1,17 +1,15 @@
-import os
 import glob
-import traceback
+import os
 import numpy as np
 import numpy.random as npr
-import tensorflow as tf
 import tensorflow.keras.backend as K
-from tensorflow.keras.models import load_model
-from tensorflow.keras.layers import Conv2D, TimeDistributed, Flatten, Dense, BatchNormalization, Layer, Input
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.layers import Flatten, Dense, BatchNormalization, Layer, Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.applications import InceptionResNetV2
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from RPN_Sample.utils import generate_anchors, draw_anchors, bbox_overlaps, bbox_transform, \
-    loss_cls, smoothL1, parse_label, unmap, filter_boxes, \
+from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, \
+    loss_cls, smoothL1, parse_label, filter_boxes, \
     clip_boxes, py_cpu_nms, bbox_transform_inv
 
 
@@ -75,7 +73,8 @@ FG_THRESH = .5
 BG_THRESH_HI = .5
 BG_THRESH_LO = .1
 
-pretrained_model = InceptionResNetV2(include_top=False)
+pretrained_model = VGG16(include_top=True, weights='imagenet')
+pretrained_model = Model(inputs=pretrained_model.input, outputs=pretrained_model.layers[17].output)
 
 rpn_model = load_model('..\\TrainedModels\\RPN_Sample.h5',
                        custom_objects={'loss_cls': loss_cls, 'smoothL1': smoothL1})
@@ -84,8 +83,8 @@ not_used = rpn_model.predict(np.load('n02676566_6914')['fc'])
 
 def produce_batch(filepath, gt_boxes, h_w, category):
     img = load_img(filepath)
-    img_width = np.shape(img)[1] * scale[1]
-    img_height = np.shape(img)[0] * scale[0]
+    img_width = 224
+    img_height = 224
     img = img.resize((int(img_width), int(img_height)))
     # feed image to pretrained model and get feature map
     img = img_to_array(img)
@@ -185,7 +184,6 @@ def produce_batch(filepath, gt_boxes, h_w, category):
 ILSVRC_dataset_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2012\\'
 img_path = ILSVRC_dataset_path + 'JPEGImages\\'
 anno_path = ILSVRC_dataset_path + 'Annotations\\'
-from multiprocessing import Process, Queue
 
 
 def worker(path):
