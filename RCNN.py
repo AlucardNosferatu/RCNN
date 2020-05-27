@@ -305,6 +305,3 @@ def test_model_od(UseRPN=True):
             plt.figure()
             plt.imshow(image_out)
             plt.savefig("TestResults\\"+i+"_od_test.jpg")
-
-
-test_model_od()
