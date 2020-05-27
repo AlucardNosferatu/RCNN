@@ -1,26 +1,19 @@
-import traceback
 import glob
-import cv2
+import os
+import traceback
 import numpy as np
 import numpy.random as npr
-import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import tensorflow as tf
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Conv2D, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
-from utils import generate_anchors, bbox_overlaps, bbox_transform, \
-    loss_cls, smoothL1, parse_label, unmap
-
-k = 9  # anchor number for each point
-
-BG_FG_FRAC = 2
+from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap
 
 
 def build_RPN():
+    k = 9
     # region RPN Model
     feature_map_tile = Input(shape=(None, None, 512))
     convolution_3x3 = Conv2D(
@@ -46,13 +39,18 @@ def build_RPN():
         name="scores1"
     )(convolution_3x3)
 
-    model = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
-    model.compile(optimizer='adam', loss={'scores1': loss_cls, 'deltas1': smoothL1})
-    return model
+    model_rpn = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
+    model_rpn.compile(optimizer='adam', loss={'scores1': loss_cls, 'deltas1': smoothL1})
+    model_rpn.save('..\\TrainedModels\\RPN_Sample.h5')
+    return model_rpn
     # endregion
 
 
 def produce_batch(pretrained_model, filepath, gt_boxes):
+    bg_fg_frac = 2
+    k = 9
+
+    # region Get feature map from backbone network (VGG16)
     img = load_img(filepath)
     img_width = 224
     img_height = 224
@@ -68,6 +66,8 @@ def produce_batch(pretrained_model, filepath, gt_boxes):
     w_stride = img_width / width
     h_stride = img_height / height
     # generate base anchors according output stride.
+    # endregion
+
     # base anchors are 9 anchors wrt a tile (0,0,w_stride-1,h_stride-1)
     base_anchors = generate_anchors(w_stride, h_stride)
     # slice tiles according to image size and stride.
@@ -124,7 +124,7 @@ def produce_batch(pretrained_model, filepath, gt_boxes):
     #             fg_inds, size=(len(fg_inds) - num_fg), replace=False)
     #         labels[disable_inds] = -1
     # subsample negative labels if we have too many
-    num_bg = int(len(fg_inds) * BG_FG_FRAC)
+    num_bg = int(len(fg_inds) * bg_fg_frac)
     bg_inds = np.where(labels == 0)[0]
     if len(bg_inds) > num_bg:
         disable_inds = npr.choice(
@@ -194,11 +194,29 @@ def input_generator():
                                 batch_bboxes = []
 
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 ILSVRC_dataset_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2012\\'
 img_path = ILSVRC_dataset_path + 'JPEGImages\\'
 anno_path = ILSVRC_dataset_path + 'Annotations\\'
 
 BATCH_SIZE = 32
-checkpointer = ModelCheckpoint(filepath='./weights.hdf5', verbose=1, save_best_only=True)
-model = build_RPN()
-model.fit_generator(input_generator(), steps_per_epoch=1000, epochs=800, callbacks=[checkpointer])
+checkpointer = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
+                               monitor='val_loss',
+                               verbose=1,
+                               save_best_only=False,
+                               save_weights_only=False,
+                               mode='auto',
+                               save_freq='epoch'
+                               )
+if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
+    model = tf.keras.models.load_model(
+        '..\\TrainedModels\\RPN_Sample.h5',
+        custom_objects={
+            'loss_cls': loss_cls,
+            'smoothL1': smoothL1
+        }
+    )
+else:
+    model = build_RPN()
+model.fit_generator(input_generator(), steps_per_epoch=10, epochs=800, callbacks=[checkpointer])
