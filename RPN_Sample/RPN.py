@@ -257,7 +257,7 @@ def train_RPN(BiClassify=False):
                                  save_freq='epoch'
                                  )
     if os.path.exists(file_path):
-        model = tf.keras.models.load_model(
+        model_rpn = tf.keras.models.load_model(
             file_path,
             custom_objects={
                 'loss_cls': loss_cls,
@@ -265,17 +265,17 @@ def train_RPN(BiClassify=False):
             }
         )
     else:
-        model = build_RPN()
-        model.save(file_path)
+        model_rpn = build_RPN()
+        model_rpn.save(file_path)
     with tf.device('/gpu:0'):
         if BiClassify:
-            model.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+            model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
         else:
-            model.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+            model_rpn.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
 
 gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-train_RPN(BiClassify=False)
+train_RPN(BiClassify=True)

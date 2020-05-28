@@ -153,6 +153,7 @@ def produce_batch(rpn_model, backbone_network, file_path, gt_boxes, category):
     if post_nms_top_n > 0:
         keep = keep[:post_nms_top_n]
     proposals = proposals[keep, :]
+
     # add gt_boxes to proposals.
     proposals = np.vstack((proposals, gt_boxes))
     # calculate overlaps of proposal and gt_boxes
@@ -167,6 +168,7 @@ def produce_batch(rpn_model, backbone_network, file_path, gt_boxes, category):
     # Sample foreground regions without replacement
     if fg_inds.size > 0:
         fg_inds = npr.choice(fg_inds, size=fg_rois_per_this_image, replace=False)
+
     bg_inds = np.where((max_overlaps < BG_THRESH_HI) &
                        (max_overlaps >= BG_THRESH_LO))[0]
     bg_rois_per_this_image = BATCH - fg_rois_per_this_image
@@ -177,20 +179,25 @@ def produce_batch(rpn_model, backbone_network, file_path, gt_boxes, category):
     # The indices that we're selecting (both fg and bg)
     keep_inds = np.append(fg_inds, bg_inds)
     # Select sampled values from various arrays:
+
     # labels = labels[keep_inds]
     rois = proposals[keep_inds]
     gt_rois = gt_boxes[gt_assignment[keep_inds]]
     targets = bbox_transform(rois, gt_rois)  # input rois
     rois_num = targets.shape[0]
+
     batch_box = np.zeros((rois_num, nb_classes, 4))
     for i in range(rois_num):
         batch_box[i, category] = targets[i]
     batch_box = np.reshape(batch_box, (rois_num, -1))
     # get gt category
     batch_categories = np.zeros((rois_num, nb_classes, 1))
+
     for i in range(rois_num):
         batch_categories[i, category] = 1
+
     batch_categories = np.reshape(batch_categories, (rois_num, -1))
+
     return rois, batch_box, batch_categories, feature_map
 
 
