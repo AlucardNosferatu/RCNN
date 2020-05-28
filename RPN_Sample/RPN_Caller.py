@@ -158,7 +158,7 @@ gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 img = getImage()
-P, S = RPN_forward(img, SelectBest=True)
+P, S = RPN_forward(img, SelectBest=False)
 img = img.reshape((224, 224, 3))
 for i in range(P.shape[0]):
     x1 = P[i, 0]
