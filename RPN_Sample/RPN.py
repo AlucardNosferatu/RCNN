@@ -42,7 +42,6 @@ def build_RPN():
 
     model_rpn = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
     model_rpn.compile(optimizer='adam', loss={'scores1': loss_cls, 'deltas1': smoothL1})
-    model_rpn.save('..\\TrainedModels\\RPN_Sample.h5')
     return model_rpn
     # endregion
 
@@ -245,7 +244,11 @@ def input_gen_airplane():
 
 
 def train_RPN(BiClassify=False):
-    checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
+    if BiClassify:
+        file_path = '..\\TrainedModels\\RPN_Prototype.h5'
+    else:
+        file_path = '..\\TrainedModels\\RPN_Sample.h5'
+    checkpoint = ModelCheckpoint(filepath=file_path,
                                  monitor='loss',
                                  verbose=1,
                                  save_best_only=True,
@@ -253,9 +256,9 @@ def train_RPN(BiClassify=False):
                                  mode='auto',
                                  save_freq='epoch'
                                  )
-    if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
+    if os.path.exists(file_path):
         model = tf.keras.models.load_model(
-            '..\\TrainedModels\\RPN_Sample.h5',
+            file_path,
             custom_objects={
                 'loss_cls': loss_cls,
                 'smoothL1': smoothL1
@@ -263,6 +266,7 @@ def train_RPN(BiClassify=False):
         )
     else:
         model = build_RPN()
+        model.save(file_path)
     with tf.device('/gpu:0'):
         if BiClassify:
             model.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
@@ -274,4 +278,4 @@ gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-train_RPN(BiClassify=True)
+train_RPN(BiClassify=False)
