@@ -9,7 +9,8 @@ from tensorflow.keras.layers import Conv2D, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
-from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap
+from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap, \
+    parse_label_csv
 
 
 def build_RPN():
@@ -167,7 +168,7 @@ def input_generator():
                 for line in f:
                     if 'extra' not in line:
                         try:
-                            category, gt_boxes, _ = parse_label(annotation_path + line.split()[0] + '.xml')
+                            gt_boxes = parse_label(annotation_path + line.split()[0] + '.xml')
                             if len(gt_boxes) == 0:
                                 continue
                             tiles, labels, bounding_boxes = produce_batch(
@@ -199,27 +200,78 @@ def input_generator():
                                 batch_bounding_boxes = []
 
 
+def input_gen_airplane():
+    annotation = "..\\ProcessedData\\Airplanes_Annotations"
+    images_path = "..\\ProcessedData\\Images"
+    batch_size = 16
+    batch_tiles = []
+    batch_labels = []
+    batch_bounding_boxes = []
+    backbone_network = VGG16(include_top=True, weights="imagenet")
+    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
+    while 1:
+        for e, i in enumerate(os.listdir(annotation)):
+            if i.startswith("airplane"):
+                try:
+                    gt_boxes = parse_label_csv(os.path.join(annotation, i))
+                    image_filename = i.split(".")[0] + ".jpg"
+                    tiles, labels, bounding_boxes = produce_batch(
+                        backbone_network,
+                        os.path.join(images_path, image_filename),
+                        gt_boxes
+                    )
+                except Exception as e:
+                    print("file: " + os.path.join(annotation, i) + " could not be parsed!")
+                    print(repr(e))
+                    continue
+                for j in range(len(tiles)):
+                    batch_tiles.append(tiles[j])
+                    batch_labels.append(labels[j])
+                    batch_bounding_boxes.append(bounding_boxes[j])
+                    if len(batch_tiles) == batch_size:
+                        a = np.asarray(batch_tiles)
+                        b = np.asarray(batch_labels)
+                        c = np.asarray(batch_bounding_boxes)
+                        if not a.any() or not b.any() or not c.any():
+                            print("empty array found.")
+                            batch_tiles = []
+                            batch_labels = []
+                            batch_bounding_boxes = []
+                            continue
+                        yield a, [b, c]
+                        batch_tiles = []
+                        batch_labels = []
+                        batch_bounding_boxes = []
+
+
+def train_RPN(BiClassify=False):
+    checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
+                                 monitor='loss',
+                                 verbose=1,
+                                 save_best_only=True,
+                                 save_weights_only=False,
+                                 mode='auto',
+                                 save_freq='epoch'
+                                 )
+    if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
+        model = tf.keras.models.load_model(
+            '..\\TrainedModels\\RPN_Sample.h5',
+            custom_objects={
+                'loss_cls': loss_cls,
+                'smoothL1': smoothL1
+            }
+        )
+    else:
+        model = build_RPN()
+    with tf.device('/gpu:0'):
+        if BiClassify:
+            model.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+        else:
+            model.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+
+
 gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RPN_Sample.h5',
-                             monitor='loss',
-                             verbose=1,
-                             save_best_only=True,
-                             save_weights_only=False,
-                             mode='auto',
-                             save_freq='epoch'
-                             )
-if os.path.exists('..\\TrainedModels\\RPN_Sample.h5'):
-    model = tf.keras.models.load_model(
-        '..\\TrainedModels\\RPN_Sample.h5',
-        custom_objects={
-            'loss_cls': loss_cls,
-            'smoothL1': smoothL1
-        }
-    )
-else:
-    model = build_RPN()
-with tf.device('/gpu:0'):
-    model.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+train_RPN(BiClassify=True)

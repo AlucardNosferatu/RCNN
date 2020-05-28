@@ -1,9 +1,30 @@
 import sys
 import numpy as np
+import pandas as pd
 import tensorflow.keras.backend as K
 import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw
 import tensorflow as tf
+
+
+def parse_label_csv(csv_file):
+    df = pd.read_csv(csv_file)
+    xmin = []
+    ymin = []
+    xmax = []
+    ymax = []
+    scale = 224 / 256
+    for row in df.iterrows():
+        x1 = int(row[1][0].split(" ")[0])
+        y1 = int(row[1][0].split(" ")[1])
+        x2 = int(row[1][0].split(" ")[2])
+        y2 = int(row[1][0].split(" ")[3])
+        xmin.append(x1 * scale)
+        ymin.append(y1 * scale)
+        xmax.append(x2 * scale)
+        ymax.append(y2 * scale)
+    gt_boxes = [list(box) for box in zip(xmin, ymin, xmax, ymax)]
+    return np.asarray(gt_boxes, np.float)
 
 
 def parse_label(xml_file):
@@ -19,13 +40,10 @@ def parse_label(xml_file):
         w_scale = 224 / int(float(x.text))
     for x in root.iter('height'):
         h_scale = 224 / int(float(x.text))
-    category = []
     xmin = []
     ymin = []
     xmax = []
     ymax = []
-    for x in root.iter('name'):
-        category.append(x.text)
     for x in root.iter('xmin'):
         xmin.append(int(float(x.text)) * w_scale)
     for x in root.iter('ymin'):
@@ -35,7 +53,7 @@ def parse_label(xml_file):
     for x in root.iter('ymax'):
         ymax.append(int(float(x.text)) * h_scale)
     gt_boxes = [list(box) for box in zip(xmin, ymin, xmax, ymax)]
-    return category, np.asarray(gt_boxes, np.float), (h_scale, w_scale)
+    return np.asarray(gt_boxes, np.float)
 
 
 def loss_cls(y_true, y_pred):

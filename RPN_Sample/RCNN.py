@@ -80,7 +80,8 @@ rpn_model = load_model('..\\TrainedModels\\RPN_Sample.h5',
                        custom_objects={'loss_cls': loss_cls, 'smoothL1': smoothL1})
 
 
-def produce_batch(file_path, gt_boxes, h_w, category):
+def produce_batch(file_path, gt_boxes, category):
+    h_w = [224, 224]
     img = load_img(file_path)
     img_width = 224
     img_height = 224
@@ -212,10 +213,14 @@ def worker(path):
             content = dataset[category]
             n = randint(0, len(content))
             line = content[n]
-            _, gt_boxes, h_w = parse_label(anno_path + line.split()[0] + '.xml')
+            gt_boxes = parse_label(anno_path + line.split()[0] + '.xml')
             if len(gt_boxes) == 0:
                 continue
-            rois, bboxes, categories = produce_batch(img_path + line.split()[0] + '.JPEG', gt_boxes, h_w, category)
+            rois, bboxes, categories = produce_batch(
+                img_path + line.split()[0] + '.JPEG',
+                gt_boxes,
+                category
+            )
         except Exception:
             # print('parse label or produce batch failed: for: '+line.split()[0])
             # traceback.print_exc()

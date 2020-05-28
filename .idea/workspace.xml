@@ -22,8 +22,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RCNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/withRPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/withRPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -154,46 +155,50 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="499" y="179" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1536.864@0.0.1536.864" timestamp="1590553067177" />
-    <state x="1036" y="269" key="#xdebugger.evaluate" timestamp="1590542398986">
+    <state x="658" y="185" key="#xdebugger.XInspectDialog" timestamp="1590628347583">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="1036" y="269" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590542398986" />
+    <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
+    <state x="886" y="249" key="#xdebugger.evaluate" timestamp="1590629778743">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="886" y="249" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590629778743" />
     <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590581174382">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590581174382" />
-    <state width="1515" height="344" key="GridCell.Tab.0.bottom" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.0.bottom" timestamp="1590629713659">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.0.center" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590629713659" />
+    <state width="1515" height="344" key="GridCell.Tab.0.center" timestamp="1590629713659">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.0.left" timestamp="1590585721726">
+    <state width="1515" height="344" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590629713659" />
+    <state width="1515" height="344" key="GridCell.Tab.0.left" timestamp="1590629713658">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590585721726" />
-    <state width="1515" height="344" key="GridCell.Tab.0.right" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590629713658" />
+    <state width="1515" height="344" key="GridCell.Tab.0.right" timestamp="1590629713659">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.1.bottom" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590629713659" />
+    <state width="1515" height="344" key="GridCell.Tab.1.bottom" timestamp="1590629727310">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.1.center" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590629727310" />
+    <state width="1515" height="344" key="GridCell.Tab.1.center" timestamp="1590629727310">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.1.left" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590629727310" />
+    <state width="1515" height="344" key="GridCell.Tab.1.left" timestamp="1590629727310">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
-    <state width="1515" height="344" key="GridCell.Tab.1.right" timestamp="1590585721727">
+    <state width="1515" height="344" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590629727310" />
+    <state width="1515" height="344" key="GridCell.Tab.1.right" timestamp="1590629727310">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="344" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590585721727" />
+    <state width="1515" height="344" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590629727310" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590375416171">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -216,7 +221,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/RPN_Sample/RPN.py</url>
-          <line>43</line>
+          <line>44</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>
