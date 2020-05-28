@@ -55,8 +55,9 @@ def produce_batch(pretrained_model, file_path, gt_boxes):
     img_width = 224
     img_height = 224
     img = img.resize((int(img_width), int(img_height)))
-    # feed image to pretrained model and get feature map
+    # feed image to backbone network and get feature map
     img = img_to_array(img)
+    img /= 255
     img = np.expand_dims(img, axis=0)
     feature_map = pretrained_model.predict(img)
     height = np.shape(feature_map)[1]
@@ -155,7 +156,7 @@ def input_generator():
     voc_path = 'C:\\BaiduNetdiskDownload\\pascalvoc\\VOCdevkit\\VOC2007\\'
     img_path = voc_path + 'JPEGImages\\'
     annotation_path = voc_path + 'Annotations\\'
-    batch_size = 64
+    batch_size = 16
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []

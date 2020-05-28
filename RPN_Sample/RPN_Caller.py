@@ -1,5 +1,7 @@
+import cv2
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing.image import load_img
@@ -109,16 +111,18 @@ def sub_sample(max_overlaps):
     return keep_inds
 
 
-def RPN_forward(img, SelectBest=True):
+def RPN_forward(image, SelectBest=True):
     rpn_model = load_model(
-        '..\\TrainedModels\\RPN_Sample.h5',
-        custom_objects={'loss_cls': loss_cls, 'smoothL1': smoothL1}
+        '..\\TrainedModels\\RPN_Prototype.h5',
+        custom_objects={
+            'loss_cls': loss_cls,
+            'smoothL1': smoothL1
+        }
     )
     backbone_network = VGG16(include_top=True, weights="imagenet")
     backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
-
     # 利用骨干网络对图像特征进行提取，得到14*14*512的特征图
-    feature_map = backbone_network.predict(img)
+    feature_map = backbone_network.predict(image)
     # 利用RPN从特征图得到预测的锚框偏移系数和对应的分数
     deltas, scores = getDeviations(rpn=rpn_model, feature_map=feature_map)
     # 根据预先制定的规则生成原始锚框
@@ -145,6 +149,7 @@ def getImage(file_path="..\\ProcessedData\\Images\\airplane_002.jpg"):
     img_height = 224
     image = image.resize((int(img_width), int(img_height)))
     image = img_to_array(image)
+    image /= 255
     image = np.expand_dims(image, axis=0)
     return image
 
@@ -153,5 +158,14 @@ gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 img = getImage()
-P, S = RPN_forward(img)
+P, S = RPN_forward(img, SelectBest=True)
+img = img.reshape((224, 224, 3))
+for i in range(P.shape[0]):
+    x1 = P[i, 0]
+    y1 = P[i, 1]
+    x2 = P[i, 2]
+    y2 = P[i, 3]
+    img = cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+plt.imshow(img)
+plt.show()
 print("Done")
