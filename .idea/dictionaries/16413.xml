@@ -2,9 +2,14 @@
   <dictionary name="16413">
     <words>
       <w>crossentropy</w>
+      <w>diningtable</w>
       <w>imagenet</w>
+      <w>pottedplant</w>
       <w>pred</w>
+      <w>relu</w>
+      <w>rmsprop</w>
       <w>softmax</w>
+      <w>tvmonitor</w>
       <w>uint</w>
     </words>
   </dictionary>

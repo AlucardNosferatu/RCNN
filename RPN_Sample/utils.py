@@ -6,6 +6,8 @@ import xml.etree.ElementTree as ET
 from PIL import Image, ImageDraw
 import tensorflow as tf
 
+BBOX_XFORM_CLIP = np.log(1000. / 16.)
+
 
 def parse_label_csv(csv_file):
     df = pd.read_csv(csv_file)
@@ -236,6 +238,7 @@ def bbox_transform(ex_rois, gt_rois):
 
 
 def bbox_transform_inv(boxes, deltas):
+    remove_invalid = None
     if boxes.shape[0] == 0:
         return np.zeros((0, deltas.shape[1]), dtype=deltas.dtype)
 
@@ -250,7 +253,8 @@ def bbox_transform_inv(boxes, deltas):
     dy = deltas[:, 1::4]
     dw = deltas[:, 2::4]
     dh = deltas[:, 3::4]
-
+    dw = np.minimum(dw, BBOX_XFORM_CLIP)
+    dh = np.minimum(dh, BBOX_XFORM_CLIP)
     pred_ctr_x = dx * widths[:, np.newaxis] + ctr_x[:, np.newaxis]
     pred_ctr_y = dy * heights[:, np.newaxis] + ctr_y[:, np.newaxis]
     pred_w = np.exp(dw) * widths[:, np.newaxis]
@@ -266,7 +270,37 @@ def bbox_transform_inv(boxes, deltas):
     # y2
     pred_boxes[:, 3::4] = pred_ctr_y + 0.5 * pred_h
 
-    return pred_boxes
+    larger_x1 = (pred_boxes[:, 0::4] + 20 > pred_boxes[:, 2::4])
+    larger_y1 = (pred_boxes[:, 1::4] + 20 > pred_boxes[:, 3::4])
+    negative_x1 = (pred_boxes[:, 0::4] < 0)
+    oversize_x1 = (pred_boxes[:, 0::4] > 224)
+    negative_y1 = (pred_boxes[:, 1::4] < 0)
+    oversize_y1 = (pred_boxes[:, 1::4] > 224)
+    negative_x2 = (pred_boxes[:, 2::4] < 0)
+    oversize_x2 = (pred_boxes[:, 2::4] > 224)
+    negative_y2 = (pred_boxes[:, 3::4] < 0)
+    oversize_y2 = (pred_boxes[:, 3::4] > 224)
+
+    bad_all = np.concatenate(
+        (
+            np.where(larger_x1)[0],
+            np.where(larger_y1)[0],
+            np.where(negative_x1)[0],
+            np.where(oversize_x1)[0],
+            np.where(negative_y1)[0],
+            np.where(oversize_y1)[0],
+            np.where(negative_x2)[0],
+            np.where(oversize_x2)[0],
+            np.where(negative_y2)[0],
+            np.where(oversize_y2)[0]
+        ),
+        axis=0
+    )
+    bad_all = np.unique(bad_all)
+    pred_boxes = np.delete(pred_boxes, bad_all, axis=0)
+    remove_invalid = bad_all
+
+    return pred_boxes, remove_invalid
 
 
 def bbox_overlaps(boxes, query_boxes):
