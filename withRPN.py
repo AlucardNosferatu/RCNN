@@ -15,7 +15,7 @@ from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 
 from RCNN import path, annotation
-from RPN_Loss import RPNLoss
+from Obsolete.RPN_Loss import RPNLoss
 from RPN_Sample.RPN_Caller import RPN_load, RPN_forward, select_proposals
 from RPN_Sample.utils import Activate_GPU
 

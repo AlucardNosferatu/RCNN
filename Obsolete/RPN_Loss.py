@@ -1,6 +1,4 @@
 import tensorflow.keras.backend as K
-import tensorflow as tf
-from Config import CheckLoss
 
 HUBER_DELTA = 0.5
 
