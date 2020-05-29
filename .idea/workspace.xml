@@ -22,9 +22,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Result (SelectBest).png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Result.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Caller.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN_Caller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/withRPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/withRPN.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,10 +58,31 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/RPN_Sample/RPN_Caller.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/TestResults/Analysis.py" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.RPN_Caller">
+  <component name="RunManager" selected="Python.Analysis">
+    <configuration name="Analysis" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="FastRCNN" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/TestResults" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TestResults/Analysis.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="RCNN_Sample" type="PythonConfigurationType" factoryName="Python">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -149,6 +170,7 @@
     <list>
       <item itemvalue="Python.RPN_Caller" />
       <item itemvalue="Python.withCustomRPN" />
+      <item itemvalue="Python.Analysis" />
       <item itemvalue="Python.RPN_Sample" />
       <item itemvalue="Python.RCNN_Sample" />
     </list>
@@ -191,10 +213,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590664510020">
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590725073162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590664510020" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590725073162" />
     <state x="502" y="233" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1590655089418">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -207,10 +229,10 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
-    <state x="531" y="278" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590713946611">
+    <state x="502" y="318" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590722468287">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="531" y="278" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590713946611" />
+    <state x="502" y="318" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590722468287" />
     <state width="1534" height="440" key="DebuggerActiveHint" timestamp="1590646706483">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -219,42 +241,42 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="-406" y="142" width="1350" height="678" key="DiffContextDialog/0.0.1536.864@0.0.1536.864" timestamp="1590662182181" />
-    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590655312916">
+    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590725071481">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590655312916" />
-    <state width="1515" height="265" key="GridCell.Tab.0.bottom" timestamp="1590719105123">
+    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590725071481" />
+    <state width="1515" height="351" key="GridCell.Tab.0.bottom" timestamp="1590725509320">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590719105123" />
-    <state width="1515" height="265" key="GridCell.Tab.0.center" timestamp="1590719105123">
+    <state width="1515" height="351" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590725509320" />
+    <state width="1515" height="351" key="GridCell.Tab.0.center" timestamp="1590725509320">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590719105123" />
-    <state width="1515" height="265" key="GridCell.Tab.0.left" timestamp="1590719105123">
+    <state width="1515" height="351" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590725509320" />
+    <state width="1515" height="351" key="GridCell.Tab.0.left" timestamp="1590725509320">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590719105123" />
-    <state width="1515" height="265" key="GridCell.Tab.0.right" timestamp="1590719105123">
+    <state width="1515" height="351" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590725509320" />
+    <state width="1515" height="351" key="GridCell.Tab.0.right" timestamp="1590725509320">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590719105123" />
-    <state width="1515" height="265" key="GridCell.Tab.1.bottom" timestamp="1590719101304">
+    <state width="1515" height="351" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590725509320" />
+    <state width="1515" height="351" key="GridCell.Tab.1.bottom" timestamp="1590725509249">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590719101304" />
-    <state width="1515" height="265" key="GridCell.Tab.1.center" timestamp="1590719101304">
+    <state width="1515" height="351" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590725509249" />
+    <state width="1515" height="351" key="GridCell.Tab.1.center" timestamp="1590725509249">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590719101304" />
-    <state width="1515" height="265" key="GridCell.Tab.1.left" timestamp="1590719101304">
+    <state width="1515" height="351" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590725509249" />
+    <state width="1515" height="351" key="GridCell.Tab.1.left" timestamp="1590725509249">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590719101304" />
-    <state width="1515" height="265" key="GridCell.Tab.1.right" timestamp="1590719101304">
+    <state width="1515" height="351" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590725509249" />
+    <state width="1515" height="351" key="GridCell.Tab.1.right" timestamp="1590725509249">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="265" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590719101304" />
+    <state width="1515" height="351" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590725509249" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590375416171">
       <screen x="0" y="0" width="1536" height="864" />
     </state>

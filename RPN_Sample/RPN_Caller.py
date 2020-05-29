@@ -106,7 +106,7 @@ def getImage(file_path="..\\ProcessedData\\Images\\airplane_002.jpg"):
     return image
 
 
-def drawROIs(image, proposals, img_name=None):
+def drawROIs(image, proposals, img_name=None, output=False):
     file_path = "..\\TestResults\\"
     image_copy = image.copy()
     for i in range(proposals.shape[0]):
@@ -115,6 +115,8 @@ def drawROIs(image, proposals, img_name=None):
         x2 = proposals[i, 2]
         y2 = proposals[i, 3]
         image_copy = cv2.rectangle(image_copy, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+    if output:
+        return image_copy
     plt.figure()
     plt.imshow(image_copy.astype("uint32"))
     if img_name:
@@ -147,9 +149,3 @@ def batch_test():
         if i.startswith("airplane"):
             img = getImage(os.path.join(file_path, i))
             RPN_test(img, img_name=i, preload=[rpn_model, backbone_network])
-
-
-gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
-for gpu in gpu_list:
-    tf.config.experimental.set_memory_growth(gpu, True)
-batch_test()
