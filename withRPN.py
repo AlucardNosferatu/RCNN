@@ -1,7 +1,6 @@
 import os
 import pickle
 import random
-
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,10 +8,9 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Dense, Conv2D, Input
+from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
-
 from RCNN import path, annotation
 from RPN_Loss import RPNLoss
 

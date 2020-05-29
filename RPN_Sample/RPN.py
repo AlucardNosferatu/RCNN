@@ -203,7 +203,7 @@ def input_generator():
 def input_gen_airplane():
     annotation = "..\\ProcessedData\\Airplanes_Annotations"
     images_path = "..\\ProcessedData\\Images"
-    batch_size = 16
+    batch_size = 32
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -279,4 +279,4 @@ gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
 for gpu in gpu_list:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-train_RPN(BiClassify=True)
+train_RPN(BiClassify=False)

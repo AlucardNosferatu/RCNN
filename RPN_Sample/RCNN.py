@@ -62,6 +62,11 @@ class RoIPooling(Layer):
         d = input_shape[0][3]
         return a, b, c, d
 
+    def get_config(self):
+        config = {'size': self.size}
+        base_config = super(RoIPooling, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
 
 def build_RCNN():
     feature_map = Input(batch_shape=(None, None, None, 512))
@@ -101,6 +106,7 @@ def produce_batch(rpn_model, backbone_network, file_path, gt_boxes, category):
     img = img.resize((int(img_width), int(img_height)))
     # feed image to backbone network and get feature map
     img = img_to_array(img)
+    img /= 255
     img = np.expand_dims(img, axis=0)
     feature_map = backbone_network.predict(img)
     height = np.shape(feature_map)[1]
@@ -265,14 +271,7 @@ def worker(data_dict, voc_path):
         e = np.asarray(batch_bounding_boxes)
         f = np.zeros((len(rois), a.shape[1], a.shape[2], a.shape[3]))
         f[0] = feature_map[0]
-        if not f.any() or not b.any() or not c.any() or not d.any() or not e.any():
-            print("empty array found.")
-            batch_rois = []
-            batch_feature_map_index = []
-            batch_categories = []
-            batch_bounding_boxes = []
-            fc_index = 0
-            continue
+        print("Yield!")
         # yield [f, b, c], [d, e]
         batch_rois = []
         batch_feature_map_index = []
@@ -281,7 +280,7 @@ def worker(data_dict, voc_path):
         fc_index = 0
 
 
-BATCH = 2
+BATCH = 16
 FG_FRACTION = .25
 FG_THRESH = .5
 BG_THRESH_HI = .5
@@ -295,4 +294,5 @@ checkpoint = ModelCheckpoint(filepath='..\\TrainedModels\\RCNN_Sample.h5', monit
 all_data = boss(VOC_path)
 worker(all_data, VOC_path)
 # model = build_RCNN()
-# model.fit_generator(worker(all_data, VOC_path), steps_per_epoch=1000, epochs=100, callbacks=[checkpoint])
+# with tf.device('/gpu:0'):
+#     model.fit_generator(worker(all_data, VOC_path), steps_per_epoch=10, epochs=100, callbacks=[checkpoint])
