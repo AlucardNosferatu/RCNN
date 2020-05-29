@@ -332,3 +332,6 @@ def standard_model_test():
         plt.savefig("TestResults\\第" + str(i) + "次测试，命中比例：" + str(int(100 * count / proposals.shape[0])) + "%.jpg")
         plt.close()
 
+
+Activate_GPU()
+standard_model_test()

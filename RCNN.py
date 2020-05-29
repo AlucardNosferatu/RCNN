@@ -12,7 +12,9 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from RPN_Loss import RPNLoss
+from Obsolete.RPN_Loss import RPNLoss
+from RPN_Sample.RPN_Caller import RPN_forward, RPN_load
+from RPN_Sample.utils import Activate_GPU, loss_cls, smoothL1
 
 tf.compat.v1.disable_eager_execution()
 
@@ -56,12 +58,15 @@ def get_iou(bb1, bb2):
     return iou
 
 
-def getROIs_fromRPN(image, model_final):
-    image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
-    result = model_final.predict(image.reshape((1, 224, 224, 3)))
-    result = result.reshape((200, 4))
+def getROIs_fromRPN(image, model_rpn, backbone=None):
+    if backbone:
+        feature_map = backbone.predict(np.expand_dims(image, axis=0) / 255)
+        result, scores = RPN_forward(rpn_model=model_rpn, feature_map=feature_map, AutoSelection=1)
+    else:
+        result = model_rpn.predict(np.expand_dims(image, axis=0) / 255)
+        result = result.reshape((200, 4))
     result_list = []
-    for i in range(200):
+    for i in range(result.shape[0]):
         result_list.append(list(result[i, :].reshape(4).astype('uint32')))
     return result_list
 
@@ -70,7 +75,14 @@ def data_generator(UseRPN=True, balance=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    model_final = tf.keras.models.load_model(
+        "TrainedModels\\RPN_Prototype.h5",
+        custom_objects={
+            'RPNLoss': RPNLoss,
+            'loss_cls': loss_cls,
+            'smoothL1': smoothL1
+        }
+    )
     for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
         if i.startswith("airplane"):
@@ -190,7 +202,7 @@ def train(NewModel=False, GenData=False):
     else:
         model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     if GenData:
-        x_new, y_new = data_generator()
+        x_new, y_new = data_generator(UseRPN=False)
     else:
         x_new, y_new = data_loader()
     one_hot = OneHot()
@@ -202,6 +214,7 @@ def train(NewModel=False, GenData=False):
         rotation_range=90
     )
     train_data = train_gen.flow(
+        batch_size=16,
         x=x_train,
         y=y_train
     )
@@ -216,9 +229,9 @@ def train(NewModel=False, GenData=False):
     )
     checkpoint = ModelCheckpoint(
         "TrainedModels\\RCNN.h5",
-        monitor='val_loss',
+        monitor='loss',
         verbose=1,
-        save_best_only=False,
+        save_best_only=True,
         save_weights_only=False,
         mode='auto',
         save_freq='epoch'
@@ -233,7 +246,7 @@ def train(NewModel=False, GenData=False):
             validation_data=test_data,
             validation_steps=2,
             generator=train_data,
-            steps_per_epoch=10,
+            steps_per_epoch=100,
             epochs=1000
         )
     plt.plot(hist.history['loss'])
@@ -265,20 +278,24 @@ def test_model_cl():
         plt.show()
 
 
-def test_model_od(UseRPN=True):
+def test_model_od(UseRPN=True, x_y_w_h=False):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     print("Classifier has been loaded.")
-    model_rpn = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    # custom_rpn = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    model_rpn = RPN_load("TrainedModels\\RPN_Prototype.h5")
     print("RPN has been loaded.")
+    backbone = Model(inputs=model_cnn.input, outputs=model_cnn.layers[17].output)
+    print("Backbone network has been loaded.")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
             z += 1
             img = cv2.imread(os.path.join(path, i))
+            img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_AREA)
             image_out = img.copy()
             if UseRPN:
-                ss_results = getROIs_fromRPN(image_out, model_rpn)
+                ss_results = getROIs_fromRPN(img, model_rpn, backbone)
             else:
                 ss.setBaseImage(img)
                 ss.switchToSelectiveSearchFast()
@@ -286,22 +303,35 @@ def test_model_od(UseRPN=True):
             for e_roi, result in enumerate(ss_results):
                 if e_roi < 200:
                     try:
-                        x, y, w, h = result
-                        assert w > 0
-                        assert h > 0
-                        target_image = image_out[y:y + h, x:x + w]
+                        if x_y_w_h:
+                            x, y, w, h = result
+                            assert w > 0
+                            assert h > 0
+                            x1 = x
+                            y1 = y
+                            x2 = x + w
+                            y2 = y + h
+                        else:
+                            x1, y1, x2, y2 = result
+                        target_image = img[y1:y2, x1:x2]
                         resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
-                        plt.figure()
                         plt.imshow(resized)
                         plt.show()
-                        img = np.expand_dims(resized, axis=0)
-                        out = model_cnn.predict(img)
+                        resized = np.expand_dims(resized, axis=0)
+                        out = model_cnn.predict(resized)
                         if out[0][0] > out[0][1]:
-                            image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                            image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+                        # else:
+                        #     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
                     except Exception as e:
                         print(repr(e))
                         print("error in " + i + "_" + str(e_roi))
                         continue
             plt.figure()
             plt.imshow(image_out)
-            plt.savefig("TestResults\\"+i+"_od_test.jpg")
+            plt.savefig("TestResults\\" + i + "_od_test.jpg")
+            plt.show()
+
+
+Activate_GPU()
+test_model_od()

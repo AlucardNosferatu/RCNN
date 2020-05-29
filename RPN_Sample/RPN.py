@@ -10,7 +10,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
 from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap, \
-    parse_label_csv
+    parse_label_csv, Activate_GPU
 
 
 def build_RPN():
@@ -203,7 +203,7 @@ def input_generator():
 def input_gen_airplane():
     annotation = "..\\ProcessedData\\Airplanes_Annotations"
     images_path = "..\\ProcessedData\\Images"
-    batch_size = 32
+    batch_size = 64
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -221,8 +221,8 @@ def input_gen_airplane():
                         gt_boxes
                     )
                 except Exception as e:
-                    print("file: " + os.path.join(annotation, i) + " could not be parsed!")
-                    print(repr(e))
+                    # print("file: " + os.path.join(annotation, i) + " could not be parsed!")
+                    # print(repr(e))
                     continue
                 for j in range(len(tiles)):
                     batch_tiles.append(tiles[j])
@@ -233,7 +233,7 @@ def input_gen_airplane():
                         b = np.asarray(batch_labels)
                         c = np.asarray(batch_bounding_boxes)
                         if not a.any() or not b.any() or not c.any():
-                            print("empty array found.")
+                            # print("empty array found.")
                             batch_tiles = []
                             batch_labels = []
                             batch_bounding_boxes = []
@@ -275,8 +275,5 @@ def train_RPN(BiClassify=False):
             model_rpn.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
 
-gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
-for gpu in gpu_list:
-    tf.config.experimental.set_memory_growth(gpu, True)
-
-train_RPN(BiClassify=False)
+Activate_GPU()
+train_RPN(BiClassify=True)
