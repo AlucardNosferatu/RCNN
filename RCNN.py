@@ -12,6 +12,8 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import VGG16
+
 from Obsolete.RPN_Loss import RPNLoss
 from RPN_Sample.RPN_Sample_Caller import RPN_forward, RPN_load
 from RPN_Sample.utils import Activate_GPU, loss_cls, smoothL1
@@ -59,6 +61,8 @@ def get_iou(bb1, bb2):
 
 
 def getROIs_fromRPN(image, model_rpn, backbone=None):
+    if image.shape != (224, 224, 3):
+        image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
     if backbone:
         feature_map = backbone.predict(np.expand_dims(image, axis=0) / 255)
         result, scores = RPN_forward(rpn_model=model_rpn, feature_map=feature_map, AutoSelection=1)
@@ -75,8 +79,10 @@ def data_generator(UseRPN=True, balance=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
+    backbone_network = VGG16(include_top=True, weights="imagenet")
+    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
     model_final = tf.keras.models.load_model(
-        "TrainedModels\\RPN_Prototype.h5",
+        "TrainedModels\\RPN_Prototype_28X28.h5",
         custom_objects={
             'RPNLoss': RPNLoss,
             'loss_cls': loss_cls,
@@ -100,7 +106,7 @@ def data_generator(UseRPN=True, balance=True):
                 gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                 # 把标签的坐标数据存入gt_values
             if UseRPN:
-                ss_results = getROIs_fromRPN(image, model_final)
+                ss_results = getROIs_fromRPN(image, model_final, backbone_network)
             else:
                 ss.setBaseImage(image)
                 ss.switchToSelectiveSearchFast()
@@ -202,7 +208,7 @@ def train(NewModel=False, GenData=False):
     else:
         model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     if GenData:
-        x_new, y_new = data_generator(UseRPN=False)
+        x_new, y_new = data_generator(UseRPN=True, balance=False)
     else:
         x_new, y_new = data_loader()
     one_hot = OneHot()
@@ -214,7 +220,6 @@ def train(NewModel=False, GenData=False):
         rotation_range=90
     )
     train_data = train_gen.flow(
-        batch_size=16,
         x=x_train,
         y=y_train
     )
@@ -283,9 +288,9 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
     model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     print("Classifier has been loaded.")
     # custom_rpn = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
-    model_rpn = RPN_load("TrainedModels\\RPN_Prototype.h5")
+    model_rpn = RPN_load("TrainedModels\\RPN_Prototype_28X28.h5")
     print("RPN has been loaded.")
-    backbone = Model(inputs=model_cnn.input, outputs=model_cnn.layers[17].output)
+    backbone = Model(inputs=model_cnn.input, outputs=model_cnn.layers[13].output)
     print("Backbone network has been loaded.")
     z = 0
     for e, i in enumerate(os.listdir(path)):
@@ -315,8 +320,8 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
                             x1, y1, x2, y2 = result
                         target_image = img[y1:y2, x1:x2]
                         resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
-                        plt.imshow(resized)
-                        plt.show()
+                        # plt.imshow(resized)
+                        # plt.show()
                         resized = np.expand_dims(resized, axis=0)
                         out = model_cnn.predict(resized)
                         if out[0][0] > out[0][1]:
@@ -334,4 +339,4 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
 
 
 Activate_GPU()
-test_model_od()
+train(GenData=True)

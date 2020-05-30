@@ -89,7 +89,7 @@ def RPN_forward(rpn_model, feature_map, SelectBest=True, AutoSelection=0.5):
     # 利用RPN从特征图得到预测的锚框偏移系数和对应的分数
     deltas, scores = getDeviations(rpn=rpn_model, feature_map=feature_map)
     # 根据预先制定的规则生成原始锚框
-    anchors = getAnchors()
+    anchors = getAnchors(width=feature_map.shape[1], height=feature_map.shape[2])
     # 根据锚框和偏移量生成实际框坐标（x1, y1, x2, y2）
     proposals, scores = DA2ROI(deltas=deltas, scores=scores, all_anchors=anchors)
     if SelectBest:

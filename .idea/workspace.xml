@@ -21,13 +21,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/RPN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Sample/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RCNN_Sample.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN_Sample.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Caller.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/withRPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/Obsolete/CustomRPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +66,7 @@
       <recent name="C:\Users\16413\Documents\GitHub\FastRCNN\Obsolete" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RPN">
+  <component name="RunManager" selected="Python.RCNN">
     <configuration name="RCNN" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -199,10 +196,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590811027577">
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590811204896">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590811027577" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590811204896" />
     <state x="502" y="233" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1590655089418">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -215,10 +212,10 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
-    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590807013566">
+    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590814166501">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590807013566" />
+    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590814166501" />
     <state width="1534" height="440" key="DebuggerActiveHint" timestamp="1590646706483">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -231,38 +228,38 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590811024599" />
-    <state width="1515" height="315" key="GridCell.Tab.0.bottom" timestamp="1590808478191">
+    <state width="1515" height="187" key="GridCell.Tab.0.bottom" timestamp="1590814218156">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
-    <state width="1515" height="315" key="GridCell.Tab.0.center" timestamp="1590808478191">
+    <state width="1515" height="187" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
+    <state width="1515" height="187" key="GridCell.Tab.0.center" timestamp="1590814218156">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
-    <state width="1515" height="315" key="GridCell.Tab.0.left" timestamp="1590808478190">
+    <state width="1515" height="187" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
+    <state width="1515" height="187" key="GridCell.Tab.0.left" timestamp="1590814218156">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590808478190" />
-    <state width="1515" height="315" key="GridCell.Tab.0.right" timestamp="1590808478191">
+    <state width="1515" height="187" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
+    <state width="1515" height="187" key="GridCell.Tab.0.right" timestamp="1590814218156">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
-    <state width="1515" height="315" key="GridCell.Tab.1.bottom" timestamp="1590808478105">
+    <state width="1515" height="187" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
+    <state width="1515" height="187" key="GridCell.Tab.1.bottom" timestamp="1590814218082">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
-    <state width="1515" height="315" key="GridCell.Tab.1.center" timestamp="1590808478105">
+    <state width="1515" height="187" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
+    <state width="1515" height="187" key="GridCell.Tab.1.center" timestamp="1590814218082">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
-    <state width="1515" height="315" key="GridCell.Tab.1.left" timestamp="1590808478105">
+    <state width="1515" height="187" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
+    <state width="1515" height="187" key="GridCell.Tab.1.left" timestamp="1590814218082">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
-    <state width="1515" height="315" key="GridCell.Tab.1.right" timestamp="1590808478105">
+    <state width="1515" height="187" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
+    <state width="1515" height="187" key="GridCell.Tab.1.right" timestamp="1590814218082">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="315" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
+    <state width="1515" height="187" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590802012162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -292,11 +289,6 @@
           <url>file://$PROJECT_DIR$/RPN_Sample/RCNN_Sample.py</url>
           <line>139</line>
           <option name="timeStamp" value="9" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/RPN.py</url>
-          <line>90</line>
-          <option name="timeStamp" value="21" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
