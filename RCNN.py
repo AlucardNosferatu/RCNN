@@ -75,7 +75,7 @@ def getROIs_fromRPN(image, model_rpn, backbone=None):
     return result_list
 
 
-def data_generator(UseRPN=True, balance=True):
+def data_generator(UseRPN=True, balance=True, CheckBatch=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
@@ -106,11 +106,11 @@ def data_generator(UseRPN=True, balance=True):
                 gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                 # 把标签的坐标数据存入gt_values
             if UseRPN:
-                ss_results = getROIs_fromRPN(image, model_final, backbone_network)
+                results = getROIs_fromRPN(image, model_final, backbone_network)
             else:
                 ss.setBaseImage(image)
                 ss.switchToSelectiveSearchFast()
-                ss_results = ss.process()
+                results = ss.process()
             # 加载SS ROI提出器
 
             image_out = image.copy()
@@ -119,22 +119,26 @@ def data_generator(UseRPN=True, balance=True):
             flag = 0
             f_flag = 0
             b_flag = 0
-            for e_roi, result in enumerate(ss_results):
+            for e_roi, result in enumerate(results):
                 try:
                     if e_roi < 200 and flag == 0:
                         # 对SS产生的头2k个结果（坐标）进行处理
                         for gt_val in gt_values:
                             # 对这张图上多个标签坐标进行处理
-                            x, y, w, h = result
-                            assert w > 0
-                            assert h > 0
-                            iou = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+                            if UseRPN:
+                                x1, y1, x2, y2 = result
+                                iou = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+                            else:
+                                x, y, w, h = result
+                                assert w > 0
+                                assert h > 0
+                                iou = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
                             # 计算候选坐标和这一标签坐标的交并比
                             if counter < 30:
                                 # 选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
                                     # 交并比阈值0.7
-                                    target_image = image_out[y:y + h, x:x + w]
+                                    target_image = image_out[y1:y2, x1:x2]
                                     resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(1)
@@ -144,7 +148,7 @@ def data_generator(UseRPN=True, balance=True):
                             if false_counter < 30:
                                 # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
-                                    target_image = image_out[y:y + h, x:x + w]
+                                    target_image = image_out[y1:y2, x1:x2]
                                     resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                                     train_images.append(resized)
                                     train_labels.append(0)
@@ -208,7 +212,7 @@ def train(NewModel=False, GenData=False):
     else:
         model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     if GenData:
-        x_new, y_new = data_generator(UseRPN=True, balance=False)
+        x_new, y_new = data_generator(UseRPN=True, balance=True)
     else:
         x_new, y_new = data_loader()
     one_hot = OneHot()
@@ -220,6 +224,7 @@ def train(NewModel=False, GenData=False):
         rotation_range=90
     )
     train_data = train_gen.flow(
+        batch_size=64,
         x=x_train,
         y=y_train
     )
@@ -283,7 +288,7 @@ def test_model_cl():
         plt.show()
 
 
-def test_model_od(UseRPN=True, x_y_w_h=False):
+def test_model_od(UseRPN=True, x_y_w_h=False, CheckTarget=False):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     print("Classifier has been loaded.")
@@ -320,10 +325,12 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
                             x1, y1, x2, y2 = result
                         target_image = img[y1:y2, x1:x2]
                         resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
-                        # plt.imshow(resized)
-                        # plt.show()
                         resized = np.expand_dims(resized, axis=0)
                         out = model_cnn.predict(resized)
+                        if CheckTarget:
+                            print(out)
+                            plt.imshow(resized.reshape((224, 224, 3)))
+                            plt.show()
                         if out[0][0] > out[0][1]:
                             image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
                         # else:
@@ -335,8 +342,20 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
             plt.figure()
             plt.imshow(image_out)
             plt.savefig("TestResults\\" + i + "_od_test.jpg")
-            plt.show()
+            # plt.show()
+            plt.close()
 
 
-# Activate_GPU()
+def CheckBatch():
+    x_new, y_new = data_loader()
+    for i in range(x_new.shape[0]):
+        print(y_new[i])
+        plt.figure()
+        plt.imshow(x_new[i].reshape((224, 224, 3)))
+        plt.show()
+
+
+Activate_GPU()
+# CheckBatch()
+test_model_od()
 # train()

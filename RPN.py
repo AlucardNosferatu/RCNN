@@ -13,7 +13,8 @@ from tensorflow.keras.layers import BatchNormalization
 
 from RCNN import get_iou
 from RPN_Research.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
-from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, unmap, \
+from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, \
+    unmap, \
     bbox_transform
 from Obsolete.CustomRPN import data_loader
 
@@ -253,7 +254,7 @@ def produce_batch(backbone_network, file_path, gt_boxes, CheckBatch=False):
 def input_gen_airplane(CheckBatch=False):
     annotation = "ProcessedData\\Airplanes_Annotations"
     images_path = "ProcessedData\\Images"
-    batch_size = 128
+    batch_size = 256
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -320,5 +321,6 @@ def train_RPN():
         model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
 
-Activate_GPU()
-train_RPN()
+# Activate_GPU()
+# train_RPN()
+# standard_model_test()

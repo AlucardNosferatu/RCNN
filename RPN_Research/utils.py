@@ -12,6 +12,7 @@ BBOX_XFORM_CLIP = np.log(1000. / 16.)
 def Activate_GPU():
     gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
     for gpu in gpu_list:
+        print(gpu)
         tf.config.experimental.set_memory_growth(gpu, True)
 
 
