@@ -73,7 +73,6 @@ def LFM_model_build():
         padding='same',
         name="3x3"
     )(feature_map_tile)
-    # convolution_3x3 = BatchNormalization()(convolution_3x3)
     output_deltas = Conv2D(
         filters=4 * k,
         kernel_size=(1, 1),
@@ -254,7 +253,7 @@ def produce_batch(backbone_network, file_path, gt_boxes, CheckBatch=False):
 def input_gen_airplane(CheckBatch=False):
     annotation = "ProcessedData\\Airplanes_Annotations"
     images_path = "ProcessedData\\Images"
-    batch_size = 32
+    batch_size = 128
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -299,7 +298,7 @@ def input_gen_airplane(CheckBatch=False):
 def train_RPN():
     file_path = 'TrainedModels\\RPN_Prototype_28X28.h5'
     checkpoint = ModelCheckpoint(filepath=file_path,
-                                 monitor='scores1_loss',
+                                 monitor='loss',
                                  verbose=1,
                                  save_best_only=True,
                                  save_weights_only=False,
@@ -318,7 +317,7 @@ def train_RPN():
         model_rpn = LFM_model_build()
         model_rpn.save(file_path)
     with tf.device('/gpu:0'):
-        model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=50, epochs=800, callbacks=[checkpoint])
+        model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
 
 Activate_GPU()
