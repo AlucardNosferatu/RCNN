@@ -8,7 +8,7 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.preprocessing.image import load_img
-from RPN_Sample.utils import generate_anchors, bbox_transform_inv, loss_cls, smoothL1, py_cpu_nms
+from RPN_Research.utils import generate_anchors, bbox_transform_inv, loss_cls, smoothL1, py_cpu_nms, Activate_GPU
 
 
 def getAnchors(img_width=224, img_height=224, width=14, height=14):
@@ -142,10 +142,14 @@ def RPN_test(image, img_name=None, preload=None):
 
 def batch_test():
     file_path = "..\\ProcessedData\\Images\\"
-    rpn_model = RPN_load()
+    rpn_model = RPN_load('..\\TrainedModels\\RPN_Prototype_28X28.h5')
     backbone_network = VGG16(include_top=True, weights="imagenet")
-    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
+    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
     for e, i in enumerate(os.listdir(file_path)):
         if i.startswith("airplane"):
             img = getImage(os.path.join(file_path, i))
             RPN_test(img, img_name=i, preload=[rpn_model, backbone_network])
+
+
+# Activate_GPU()
+# batch_test()

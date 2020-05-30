@@ -10,7 +10,7 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Conv2D, Input
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from RPN_Sample.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap, \
+from RPN_Research.utils import generate_anchors, bbox_overlaps, bbox_transform, loss_cls, smoothL1, parse_label, unmap, \
     parse_label_csv, Activate_GPU
 
 
@@ -325,6 +325,6 @@ def train_RPN(BiClassify=False):
             model_rpn.fit_generator(input_generator(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
 
-Activate_GPU()
-input_gen_airplane(CheckBatch=True)
+# Activate_GPU()
+# input_gen_airplane(CheckBatch=True)
 # train_RPN(BiClassify=True)

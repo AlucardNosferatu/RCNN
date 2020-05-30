@@ -15,8 +15,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import VGG16
 
 from Obsolete.RPN_Loss import RPNLoss
-from RPN_Sample.RPN_Sample_Caller import RPN_forward, RPN_load
-from RPN_Sample.utils import Activate_GPU, loss_cls, smoothL1
+from RPN_Research.RPN_Sample_Caller import RPN_forward, RPN_load
+from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1
 
 tf.compat.v1.disable_eager_execution()
 
@@ -338,5 +338,5 @@ def test_model_od(UseRPN=True, x_y_w_h=False):
             plt.show()
 
 
-Activate_GPU()
-train(GenData=True)
+# Activate_GPU()
+# train()

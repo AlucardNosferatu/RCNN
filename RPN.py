@@ -9,25 +9,26 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import BatchNormalization
 
 from RCNN import get_iou
-from RPN_Sample.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
-from RPN_Sample.utils import Activate_GPU, loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, unmap, \
+from RPN_Research.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
+from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, unmap, \
     bbox_transform
 from Obsolete.CustomRPN import data_loader
 
 
 def standard_model_test():
-    rpn_model = RPN_load(file_path="TrainedModels\\RPN_Prototype.h5")
+    rpn_model = RPN_load(file_path="TrainedModels\\RPN_Prototype_28X28.h5")
     backbone_network = VGG16(include_top=True, weights="imagenet")
-    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
-    x_new, y_new = data_loader()
+    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
+    x_new, y_new = data_loader(BasePath='ProcessedData/')
     for i in range(0, x_new.shape[0], 5):
         count = 0
         image_out = x_new[i, :, :, :]
         feature_map = backbone_network.predict(np.expand_dims(image_out, axis=0) / 255)
         proposals, scores = RPN_forward(rpn_model=rpn_model, feature_map=feature_map)
-        proposals, scores = select_proposals(scores=scores, proposals=proposals, AutoSelection=0.25)
+        proposals, scores = select_proposals(scores=scores, proposals=proposals, AutoSelection=0.05)
         gt_values = []
         for j in range(y_new.shape[1]):
             x1 = int(y_new[i, j, 0])
@@ -72,6 +73,7 @@ def LFM_model_build():
         padding='same',
         name="3x3"
     )(feature_map_tile)
+    # convolution_3x3 = BatchNormalization()(convolution_3x3)
     output_deltas = Conv2D(
         filters=4 * k,
         kernel_size=(1, 1),
@@ -252,7 +254,7 @@ def produce_batch(backbone_network, file_path, gt_boxes, CheckBatch=False):
 def input_gen_airplane(CheckBatch=False):
     annotation = "ProcessedData\\Airplanes_Annotations"
     images_path = "ProcessedData\\Images"
-    batch_size = 64
+    batch_size = 32
     batch_tiles = []
     batch_labels = []
     batch_bounding_boxes = []
@@ -297,7 +299,7 @@ def input_gen_airplane(CheckBatch=False):
 def train_RPN():
     file_path = 'TrainedModels\\RPN_Prototype_28X28.h5'
     checkpoint = ModelCheckpoint(filepath=file_path,
-                                 monitor='loss',
+                                 monitor='scores1_loss',
                                  verbose=1,
                                  save_best_only=True,
                                  save_weights_only=False,
@@ -316,8 +318,8 @@ def train_RPN():
         model_rpn = LFM_model_build()
         model_rpn.save(file_path)
     with tf.device('/gpu:0'):
-        model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+        model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=50, epochs=800, callbacks=[checkpoint])
 
 
-# Activate_GPU()
-# train_RPN()
+Activate_GPU()
+train_RPN()

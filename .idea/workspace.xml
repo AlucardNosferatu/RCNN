@@ -22,9 +22,13 @@
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Obsolete/CustomRPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/Obsolete/CustomRPN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/RCNN_Sample.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Research/RCNN_Sample.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Sample.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Research/RPN_Sample.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Research/RPN_Sample_Caller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Research/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,7 +62,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/TestResults/Analysis.py" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
@@ -66,7 +70,28 @@
       <recent name="C:\Users\16413\Documents\GitHub\FastRCNN\Obsolete" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RCNN">
+  <component name="RunManager" selected="Python.RPN">
+    <configuration name="Analysis" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="FastRCNN" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/TestResults" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TestResults/Analysis.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="RCNN" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -117,11 +142,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/RPN_Sample" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/RPN_Research" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RPN_Sample/RPN_Sample.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RPN_Research/RPN_Sample.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -138,11 +163,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/RPN_Sample" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/RPN_Research" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RPN_Sample/RPN_Sample_Caller.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/RPN_Research/RPN_Sample_Caller.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -152,6 +177,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.Analysis" />
       <item itemvalue="Python.RCNN" />
       <item itemvalue="Python.RPN" />
       <item itemvalue="Python.RPN_Sample" />
@@ -196,10 +222,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590811204896">
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590817946832">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590811204896" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590817946832" />
     <state x="502" y="233" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1590655089418">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -224,42 +250,42 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="-406" y="142" width="1350" height="678" key="DiffContextDialog/0.0.1536.864@0.0.1536.864" timestamp="1590662182181" />
-    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590811024599">
+    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590817945221">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590811024599" />
-    <state width="1515" height="187" key="GridCell.Tab.0.bottom" timestamp="1590814218156">
+    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590817945221" />
+    <state width="1515" height="273" key="GridCell.Tab.0.bottom" timestamp="1590821393993">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
-    <state width="1515" height="187" key="GridCell.Tab.0.center" timestamp="1590814218156">
+    <state width="1515" height="273" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590821393993" />
+    <state width="1515" height="273" key="GridCell.Tab.0.center" timestamp="1590821393993">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
-    <state width="1515" height="187" key="GridCell.Tab.0.left" timestamp="1590814218156">
+    <state width="1515" height="273" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590821393993" />
+    <state width="1515" height="273" key="GridCell.Tab.0.left" timestamp="1590821393993">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
-    <state width="1515" height="187" key="GridCell.Tab.0.right" timestamp="1590814218156">
+    <state width="1515" height="273" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590821393993" />
+    <state width="1515" height="273" key="GridCell.Tab.0.right" timestamp="1590821393993">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590814218156" />
-    <state width="1515" height="187" key="GridCell.Tab.1.bottom" timestamp="1590814218082">
+    <state width="1515" height="273" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590821393993" />
+    <state width="1515" height="273" key="GridCell.Tab.1.bottom" timestamp="1590821393911">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
-    <state width="1515" height="187" key="GridCell.Tab.1.center" timestamp="1590814218082">
+    <state width="1515" height="273" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590821393911" />
+    <state width="1515" height="273" key="GridCell.Tab.1.center" timestamp="1590821393911">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
-    <state width="1515" height="187" key="GridCell.Tab.1.left" timestamp="1590814218082">
+    <state width="1515" height="273" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590821393911" />
+    <state width="1515" height="273" key="GridCell.Tab.1.left" timestamp="1590821393911">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
-    <state width="1515" height="187" key="GridCell.Tab.1.right" timestamp="1590814218082">
+    <state width="1515" height="273" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590821393911" />
+    <state width="1515" height="273" key="GridCell.Tab.1.right" timestamp="1590821393911">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="187" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590814218082" />
+    <state width="1515" height="273" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590821393911" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590802012162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -281,12 +307,12 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/RPN_Sample/RCNN_Sample.py</url>
+          <url>file://$PROJECT_DIR$/RPN_Research/RCNN_Sample.py</url>
           <line>149</line>
           <option name="timeStamp" value="8" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/RPN_Sample/RCNN_Sample.py</url>
+          <url>file://$PROJECT_DIR$/RPN_Research/RCNN_Sample.py</url>
           <line>139</line>
           <option name="timeStamp" value="9" />
         </line-breakpoint>

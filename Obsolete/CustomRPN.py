@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Model
-from tensorflow.keras.applications import VGG16
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
@@ -16,8 +15,6 @@ from tqdm import tqdm
 
 from RCNN import path, annotation
 from Obsolete.RPN_Loss import RPNLoss
-from RPN_Sample.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
-from RPN_Sample.utils import Activate_GPU
 
 roi_count = 200
 
@@ -174,9 +171,9 @@ def data_generator():
     return x_new, y_new
 
 
-def data_loader():
-    ti_pkl = open('../ProcessedData/train_images_rpn.pkl', 'rb')
-    tl_pkl = open('../ProcessedData/train_labels_rpn.pkl', 'rb')
+def data_loader(BasePath="../ProcessedData/"):
+    ti_pkl = open(BasePath+'train_images_rpn.pkl', 'rb')
+    tl_pkl = open(BasePath+'train_labels_rpn.pkl', 'rb')
     train_images = pickle.load(ti_pkl)
     train_labels = pickle.load(tl_pkl)
     ti_pkl.close()
