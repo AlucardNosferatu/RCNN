@@ -339,15 +339,15 @@ def bbox_overlaps(boxes, query_boxes):
     return overlaps
 
 
-def unmap(data, count, inds, fill=0):
+def unmap(data, count, indices, fill=0):
     """ Unmap a subset of item (data) back to the original set of items (of
     size count) """
     if len(data.shape) == 1:
         ret = np.empty((count,), dtype=np.float32)
         ret.fill(fill)
-        ret[inds] = data
+        ret[indices] = data
     else:
         ret = np.empty((count,) + data.shape[1:], dtype=np.float32)
         ret.fill(fill)
-        ret[inds, :] = data
+        ret[indices, :] = data
     return ret

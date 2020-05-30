@@ -22,10 +22,8 @@
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN_Sample/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/RPN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TestResults/Analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestResults/Analysis.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/withRPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/withRPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Sample/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Sample/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,9 +58,9 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/RCNN.py" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
-  <component name="RunManager" selected="Python.RCNNwithRPN">
+  <component name="RunManager" selected="Python.RPN_Sample">
     <configuration name="Analysis" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -252,10 +250,10 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
-    <state x="502" y="318" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590722468287">
+    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590807013566">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="502" y="318" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590722468287" />
+    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590807013566" />
     <state width="1534" height="440" key="DebuggerActiveHint" timestamp="1590646706483">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -268,50 +266,50 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590749771935" />
-    <state width="1515" height="289" key="GridCell.Tab.0.bottom" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.0.bottom" timestamp="1590808478191">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.0.center" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
+    <state width="1515" height="315" key="GridCell.Tab.0.center" timestamp="1590808478191">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.0.left" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
+    <state width="1515" height="315" key="GridCell.Tab.0.left" timestamp="1590808478190">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.0.right" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590808478190" />
+    <state width="1515" height="315" key="GridCell.Tab.0.right" timestamp="1590808478191">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.1.bottom" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590808478191" />
+    <state width="1515" height="315" key="GridCell.Tab.1.bottom" timestamp="1590808478105">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.1.center" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
+    <state width="1515" height="315" key="GridCell.Tab.1.center" timestamp="1590808478105">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.1.left" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
+    <state width="1515" height="315" key="GridCell.Tab.1.left" timestamp="1590808478105">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state width="1515" height="289" key="GridCell.Tab.1.right" timestamp="1590754406131">
+    <state width="1515" height="315" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
+    <state width="1515" height="315" key="GridCell.Tab.1.right" timestamp="1590808478105">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590754406131" />
-    <state x="270" y="77" key="SettingsEditor" timestamp="1590375416171">
+    <state width="1515" height="315" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590808478105" />
+    <state x="270" y="77" key="SettingsEditor" timestamp="1590802012162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1590375416171" />
+    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1590802012162" />
     <state x="325" y="161" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2" timestamp="1590715112574">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="325" y="161" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1536.864@0.0.1536.864" timestamp="1590715112574" />
-    <state x="608" y="203" key="refactoring.ChangeSignatureDialog" timestamp="1589986519119">
+    <state x="789" y="148" key="refactoring.ChangeSignatureDialog" timestamp="1590803920131">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="608" y="203" key="refactoring.ChangeSignatureDialog/0.0.1536.864@0.0.1536.864" timestamp="1589986519119" />
+    <state x="789" y="148" key="refactoring.ChangeSignatureDialog/0.0.1536.864@0.0.1536.864" timestamp="1590803920131" />
     <state x="431" y="181" width="672" height="678" key="search.everywhere.popup" timestamp="1590717545535">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
