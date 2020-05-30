@@ -185,6 +185,7 @@ def check_ground_truth(img, gt_rois, index):
     # plt.show()
     plt.close()
 
+
 def check_positive_anchors(img, check_anchors, index):
     img_copy = img.copy()
     for i in range(check_anchors.shape[0]):

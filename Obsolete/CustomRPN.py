@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from RCNN import path, annotation
 from Obsolete.RPN_Loss import RPNLoss
-from RPN_Sample.RPN_Caller import RPN_load, RPN_forward, select_proposals
+from RPN_Sample.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
 from RPN_Sample.utils import Activate_GPU
 
 roi_count = 200
@@ -163,8 +163,8 @@ def data_generator():
                 gt_values,
                 image_out
             )
-    ti_pkl = open('ProcessedData\\train_images_rpn.pkl', 'wb')
-    tl_pkl = open('ProcessedData\\train_labels_rpn.pkl', 'wb')
+    ti_pkl = open('../ProcessedData/train_images_rpn.pkl', 'wb')
+    tl_pkl = open('../ProcessedData/train_labels_rpn.pkl', 'wb')
     pickle.dump(train_images, ti_pkl)
     pickle.dump(train_labels, tl_pkl)
     ti_pkl.close()
@@ -175,8 +175,8 @@ def data_generator():
 
 
 def data_loader():
-    ti_pkl = open('ProcessedData\\train_images_rpn.pkl', 'rb')
-    tl_pkl = open('ProcessedData\\train_labels_rpn.pkl', 'rb')
+    ti_pkl = open('../ProcessedData/train_images_rpn.pkl', 'rb')
+    tl_pkl = open('../ProcessedData/train_labels_rpn.pkl', 'rb')
     train_images = pickle.load(ti_pkl)
     train_labels = pickle.load(tl_pkl)
     ti_pkl.close()
@@ -216,9 +216,9 @@ def prototype_model_build():
 
 def prototype_model_train():
     x_new, y_new = data_loader()
-    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    model_final = tf.keras.models.load_model("../TrainedModels/RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
     checkpoint = ModelCheckpoint(
-        "TrainedModels\\RPN_Prototype.h5",
+        "../TrainedModels/RPN_Prototype.h5",
         monitor='val_loss',
         verbose=1,
         save_best_only=False,
@@ -244,7 +244,7 @@ def prototype_model_train():
 def prototype_model_test():
     x_y_w_h = True
     x_new, y_new = data_loader()
-    model_final = tf.keras.models.load_model("TrainedModels\\RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
+    model_final = tf.keras.models.load_model("../TrainedModels/RPN_Prototype.h5", custom_objects={'RPNLoss': RPNLoss})
     for i in range(0, x_new.shape[0], 5):
         count = 0
         result = model_final.predict(x_new[i, :, :, :].reshape((1, 224, 224, 3)))
@@ -289,49 +289,4 @@ def prototype_model_test():
         plt.close()
 
 
-def standard_model_test():
-    rpn_model = RPN_load(file_path="TrainedModels\\RPN_Prototype.h5")
-    backbone_network = VGG16(include_top=True, weights="imagenet")
-    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[17].output)
-    x_new, y_new = data_loader()
-    for i in range(0, x_new.shape[0], 5):
-        count = 0
-        image_out = x_new[i, :, :, :]
-        feature_map = backbone_network.predict(np.expand_dims(image_out, axis=0) / 255)
-        proposals, scores = RPN_forward(rpn_model=rpn_model, feature_map=feature_map)
-        proposals, scores = select_proposals(scores=scores, proposals=proposals, AutoSelection=0.25)
-        gt_values = []
-        for j in range(y_new.shape[1]):
-            x1 = int(y_new[i, j, 0])
-            y1 = int(y_new[i, j, 1])
-            x2 = int(y_new[i, j, 2])
-            y2 = int(y_new[i, j, 3])
-            if x1 == x2 or y1 == y2:
-                print("zero area error!")
-                continue
-            gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
-        for roi in range(proposals.shape[0]):
-            x1 = int(proposals[roi, 0])
-            y1 = int(proposals[roi, 1])
-            x2 = int(proposals[roi, 2])
-            y2 = int(proposals[roi, 3])
-            if x1 >= x2 or y1 >= y2:
-                print("zero area error!")
-                continue
-            iou_list = []
-            for gt_val in gt_values:
-                temp = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
-                iou_list.append(temp)
-            if max(iou_list) > 0.25:
-                count += 1
-                image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
-            else:
-                image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
-        plt.figure()
-        plt.imshow(image_out)
-        plt.savefig("TestResults\\第" + str(i) + "次测试，命中比例：" + str(int(100 * count / proposals.shape[0])) + "%.jpg")
-        plt.close()
 
-
-Activate_GPU()
-standard_model_test()
