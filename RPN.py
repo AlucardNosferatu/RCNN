@@ -4,14 +4,13 @@ import pickle
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from RCNN import get_iou
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import Input, Conv2D
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from RPN_Research.RPN_utils import loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, \
-    unmap, bbox_transform, RPN_forward, select_proposals, RPN_load, Activate_GPU
+from utils import loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, unmap, bbox_transform, \
+    RPN_forward, select_proposals, RPN_load, Activate_GPU, get_iou
 
 
 def data_loader(BasePath="../ProcessedData/"):
@@ -326,7 +325,6 @@ def train_RPN():
         model_rpn.save(file_path)
     with tf.device('/gpu:0'):
         model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
-
 
 # Activate_GPU()
 # train_RPN()

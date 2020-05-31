@@ -22,17 +22,9 @@
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Obsolete/CustomRPN.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Obsolete/RCNN.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Obsolete/RPN_Loss.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Obsolete/parse.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Research/RCNN_Sample.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Research/RPN_Sample.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Research/RPN_Sample_Caller.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/RPN_Research/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN_Research/RPN_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TestResults/Analysis.py" beforeDir="false" afterPath="$PROJECT_DIR$/TestResults/Analysis.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPN_Research/RPN_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,16 +58,17 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../yolov1-keras-voc" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/FPN.py" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\16413\Documents\GitHub\FastRCNN" />
       <recent name="C:\Users\16413\Documents\GitHub\FastRCNN\Obsolete" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Analysis">
-    <configuration name="Analysis" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+  <component name="RunManager" selected="Python.FPN">
+    <configuration name="FPN" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -83,11 +76,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python37_64\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/TestResults" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/TestResults/Analysis.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/FPN.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -139,7 +132,7 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.Analysis" />
+      <item itemvalue="Python.FPN" />
       <item itemvalue="Python.RCNN" />
       <item itemvalue="Python.RPN" />
     </list>
@@ -182,10 +175,10 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590888037979">
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1590894688050">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590888037979" />
+    <state x="223" y="87" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.864@0.0.1536.864" timestamp="1590894688050" />
     <state x="502" y="233" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1590655089418">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -198,10 +191,10 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
-    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590833656935">
+    <state x="819" y="314" width="488" height="545" key="#xdebugger.evaluate" timestamp="1590909244302">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="644" y="279" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590833656935" />
+    <state x="819" y="314" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1590909244302" />
     <state width="1534" height="440" key="DebuggerActiveHint" timestamp="1590646706483">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -210,42 +203,42 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="-406" y="142" width="1350" height="678" key="DiffContextDialog/0.0.1536.864@0.0.1536.864" timestamp="1590662182181" />
-    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590889716470">
+    <state x="548" y="187" key="FileChooserDialogImpl" timestamp="1590894674802">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590889716470" />
-    <state width="1515" height="289" key="GridCell.Tab.0.bottom" timestamp="1590891254641">
+    <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1590894674802" />
+    <state width="1515" height="132" key="GridCell.Tab.0.bottom" timestamp="1590910584646">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590891254641" />
-    <state width="1515" height="289" key="GridCell.Tab.0.center" timestamp="1590891254641">
+    <state width="1515" height="132" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590910584646" />
+    <state width="1515" height="132" key="GridCell.Tab.0.center" timestamp="1590910584646">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590891254641" />
-    <state width="1515" height="289" key="GridCell.Tab.0.left" timestamp="1590891254641">
+    <state width="1515" height="132" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1590910584646" />
+    <state width="1515" height="132" key="GridCell.Tab.0.left" timestamp="1590910584646">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590891254641" />
-    <state width="1515" height="289" key="GridCell.Tab.0.right" timestamp="1590891254641">
+    <state width="1515" height="132" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1590910584646" />
+    <state width="1515" height="132" key="GridCell.Tab.0.right" timestamp="1590910584646">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590891254641" />
-    <state width="1515" height="289" key="GridCell.Tab.1.bottom" timestamp="1590891254544">
+    <state width="1515" height="132" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1590910584646" />
+    <state width="1515" height="132" key="GridCell.Tab.1.bottom" timestamp="1590910584537">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590891254544" />
-    <state width="1515" height="289" key="GridCell.Tab.1.center" timestamp="1590891254544">
+    <state width="1515" height="132" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1590910584537" />
+    <state width="1515" height="132" key="GridCell.Tab.1.center" timestamp="1590910584537">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590891254544" />
-    <state width="1515" height="289" key="GridCell.Tab.1.left" timestamp="1590891254543">
+    <state width="1515" height="132" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1590910584537" />
+    <state width="1515" height="132" key="GridCell.Tab.1.left" timestamp="1590910584537">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590891254543" />
-    <state width="1515" height="289" key="GridCell.Tab.1.right" timestamp="1590891254544">
+    <state width="1515" height="132" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1590910584537" />
+    <state width="1515" height="132" key="GridCell.Tab.1.right" timestamp="1590910584537">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="289" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590891254544" />
+    <state width="1515" height="132" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1590910584537" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590802012162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>

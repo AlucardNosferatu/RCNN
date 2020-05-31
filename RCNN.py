@@ -13,7 +13,10 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from RPN_Research.RPN_utils import Activate_GPU, loss_cls, smoothL1, RPN_forward, RPN_load
+from utils import loss_cls, smoothL1, RPN_forward, RPN_load, Activate_GPU, get_iou
+
+path = "ProcessedData\\Images"
+annotation = "ProcessedData\\Airplanes_Annotations"
 
 
 class OneHot(LabelBinarizer):
@@ -31,30 +34,6 @@ class OneHot(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
-path = "ProcessedData\\Images"
-annotation = "ProcessedData\\Airplanes_Annotations"
-
-
-def get_iou(bb1, bb2):
-    assert bb1['x1'] < bb1['x2']
-    assert bb1['y1'] < bb1['y2']
-    assert bb2['x1'] < bb2['x2']
-    assert bb2['y1'] < bb2['y2']
-    x_left = max(bb1['x1'], bb2['x1'])
-    y_top = max(bb1['y1'], bb2['y1'])
-    x_right = min(bb1['x2'], bb2['x2'])
-    y_bottom = min(bb1['y2'], bb2['y2'])
-    if x_right < x_left or y_bottom < y_top:
-        return 0.0
-    intersection_area = (x_right - x_left) * (y_bottom - y_top)
-    bb1_area = (bb1['x2'] - bb1['x1']) * (bb1['y2'] - bb1['y1'])
-    bb2_area = (bb2['x2'] - bb2['x1']) * (bb2['y2'] - bb2['y1'])
-    iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
-    assert iou >= 0.0
-    assert iou <= 1.0
-    return iou
-
-
 def getROIs_fromRPN(image, model_rpn, backbone=None):
     if image.shape != (224, 224, 3):
         image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_AREA)
@@ -70,7 +49,7 @@ def getROIs_fromRPN(image, model_rpn, backbone=None):
     return result_list
 
 
-def data_generator(UseRPN=True, balance=True):
+def data_generator(UseRPN=True, balance=0.7):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
@@ -157,7 +136,7 @@ def data_generator(UseRPN=True, balance=True):
                     print("error in " + filename + "_" + str(e_roi))
                     continue
     if balance:
-        while train_labels.count(0) > 0.6 * len(train_labels):
+        while train_labels.count(0) > balance * len(train_labels):
             print("Negative ratio: " + str(int(100 * train_labels.count(0) / len(train_labels))) + "%")
             index = train_labels.index(0)
             del train_labels[index]
@@ -347,7 +326,6 @@ def CheckBatch():
         plt.figure()
         plt.imshow(x_new[i].reshape((224, 224, 3)))
         plt.show()
-
 
 # Activate_GPU()
 # data_generator(UseRPN=True, balance=True)
