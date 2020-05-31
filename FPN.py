@@ -54,7 +54,7 @@ def train(NewModel=False, GenData=False):
         for i in range(0, len(fpn_result)):
             x = Flatten(name='flat_afterFM_' + str(i))(fpn_result[i])
             x = BatchNormalization()(x)
-            x = Dense(8, activation='relu')(x)
+            x = Dense(16, activation='relu')(x)
             roi_result.append(x)
         x = tf.concat(roi_result, axis=1)
         x = BatchNormalization()(x)
@@ -115,7 +115,7 @@ def train(NewModel=False, GenData=False):
             validation_data=test_data,
             validation_steps=1,
             generator=train_data,
-            steps_per_epoch=100,
+            steps_per_epoch=200,
             epochs=1000
         )
     plt.plot(hist.history['loss'])
