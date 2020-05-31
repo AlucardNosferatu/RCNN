@@ -1,24 +1,19 @@
-import cv2
 import os
+import cv2
 import pickle
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelBinarizer
+import matplotlib.pyplot as plt
 from tensorflow.keras import Model
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.applications import VGG16
-
-from Obsolete.RPN_Loss import RPNLoss
-from RPN_Research.RPN_Sample_Caller import RPN_forward, RPN_load
-from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1
-
-tf.compat.v1.disable_eager_execution()
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from RPN_Research.RPN_utils import Activate_GPU, loss_cls, smoothL1, RPN_forward, RPN_load
 
 
 class OneHot(LabelBinarizer):
@@ -75,7 +70,7 @@ def getROIs_fromRPN(image, model_rpn, backbone=None):
     return result_list
 
 
-def data_generator(UseRPN=True, balance=True, CheckBatch=True):
+def data_generator(UseRPN=True, balance=True):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
@@ -84,7 +79,6 @@ def data_generator(UseRPN=True, balance=True, CheckBatch=True):
     model_final = tf.keras.models.load_model(
         "TrainedModels\\RPN_Prototype_28X28.h5",
         custom_objects={
-            'RPNLoss': RPNLoss,
             'loss_cls': loss_cls,
             'smoothL1': smoothL1
         }
@@ -355,7 +349,7 @@ def CheckBatch():
         plt.show()
 
 
-Activate_GPU()
-# CheckBatch()
-test_model_od()
+# Activate_GPU()
+# data_generator(UseRPN=True, balance=True)
+# test_model_od()
 # train()

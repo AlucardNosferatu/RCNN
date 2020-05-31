@@ -1,8 +1,7 @@
 import os
 import numpy as np
 
-file_path = "Test"
-# file_path = "自制RPN效果"
+file_path = "RPN"
 scores = []
 for e, i in enumerate(os.listdir(file_path)):
     scores.append(int(i.split('命中比例：')[1].split('%.jpg')[0]))

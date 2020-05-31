@@ -1,22 +1,29 @@
 import os
-
 import cv2
+import pickle
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from tensorflow.keras.layers import Input, Conv2D
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import BatchNormalization
-
 from RCNN import get_iou
-from RPN_Research.RPN_Sample_Caller import RPN_load, RPN_forward, select_proposals
-from RPN_Research.utils import Activate_GPU, loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, \
-    unmap, \
-    bbox_transform
-from Obsolete.CustomRPN import data_loader
+from tensorflow.keras.models import Model
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.layers import Input, Conv2D
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from RPN_Research.RPN_utils import loss_cls, smoothL1, parse_label_csv, generate_anchors, bbox_overlaps, \
+    unmap, bbox_transform, RPN_forward, select_proposals, RPN_load, Activate_GPU
+
+
+def data_loader(BasePath="../ProcessedData/"):
+    ti_pkl = open(BasePath + 'train_images_rpn.pkl', 'rb')
+    tl_pkl = open(BasePath + 'train_labels_rpn.pkl', 'rb')
+    train_images = pickle.load(ti_pkl)
+    train_labels = pickle.load(tl_pkl)
+    ti_pkl.close()
+    tl_pkl.close()
+    x_new = np.array(train_images)
+    y_new = np.array(train_labels)
+    return x_new, y_new
 
 
 def standard_model_test():
@@ -63,8 +70,8 @@ def standard_model_test():
         plt.close()
 
 
-# LFM means Larger Feature Map
 def LFM_model_build():
+    # LFM means Larger Feature Map
     k = 9
     # region RPN Model
     feature_map_tile = Input(shape=(None, None, 512))
