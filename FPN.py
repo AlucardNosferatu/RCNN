@@ -1,7 +1,6 @@
 import cv2
 import os
 import pickle
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,8 +13,6 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-tf.compat.v1.disable_eager_execution()
 
 
 class MyLabelBinarizer(LabelBinarizer):
