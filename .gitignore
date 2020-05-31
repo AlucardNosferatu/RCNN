@@ -4,3 +4,5 @@ Images/
 *.h5
 *.pkl
 ieeercnn_vgg16_1.h5py/
+*.jpg
+ProcessedData/VOC2007_XML/
