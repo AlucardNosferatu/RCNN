@@ -196,6 +196,6 @@ def test_model_od():
 
 Activate_GPU()
 train()
-# data_generator(balance=0.99)
+# data_generator(balance=0.7)
 # CheckBatch()
 # test_model_od()

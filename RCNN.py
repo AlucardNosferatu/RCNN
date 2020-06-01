@@ -330,6 +330,10 @@ def CheckBatch():
         plt.imshow(x_new[i].reshape((224, 224, 3)))
         plt.show()
 
+
+
+
+
 # Activate_GPU()
 # data_generator(UseRPN=True, balance=True)
 # test_model_od()
