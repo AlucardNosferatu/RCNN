@@ -100,12 +100,15 @@ def data_generator(UseRPN=True, balance=0.7):
                             # 对这张图上多个标签坐标进行处理
                             if UseRPN:
                                 x1, y1, x2, y2 = result
-                                iou = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                             else:
                                 x, y, w, h = result
                                 assert w > 0
                                 assert h > 0
-                                iou = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+                                x1 = x
+                                y1 = y
+                                x2 = x + w
+                                y2 = y + h
+                            iou = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                             # 计算候选坐标和这一标签坐标的交并比
                             if counter < 30:
                                 # 选择交并比大于阈值的头30个候选坐标
@@ -321,9 +324,9 @@ def test_model_od(UseRPN=True, x_y_w_h=False, CheckTarget=False):
 
 def CheckBatch():
     x_new, y_new = data_loader()
+    print("Negative Ratio: "+str(list(y_new).count(0)/y_new.shape[0]))
     for i in range(x_new.shape[0]):
         print(y_new[i])
-        plt.figure()
         plt.imshow(x_new[i].reshape((224, 224, 3)))
         plt.show()
 
