@@ -51,30 +51,44 @@ class FPN(Model):
         return [p3, p4, p5]
 
 
+def EachRouteAfterFPN(FPN_FM, index):
+    x = Conv2D(64, (3, 3), padding='same')(FPN_FM)
+    x = BatchNormalization()(x)
+    x = Conv2D(64, (3, 3), padding='same')(x)
+    x = Flatten(name='flat_afterFM_' + str(index))(x)
+    x = BatchNormalization()(x)
+    x = Dense(64, activation='relu')(x)
+    return x
+
+
+def ClassifierBlockAfterFPN(fpn_result):
+    roi_result = []
+    for i in range(0, len(fpn_result)):
+        x = EachRouteAfterFPN(fpn_result[i], i)
+        roi_result.append(x)
+    x = tf.concat(roi_result, axis=1)
+    x = BatchNormalization()(x)
+    x = Dense(2, activation="softmax")(x)
+    return x
+
+
+def FPN_BN_Interface(fpn, backbone):
+    fm_layer_indices = [10, 14, 18]
+    fpn_input = []
+    for each in fm_layer_indices:
+        fpn_input.append(backbone.layers[each].output)
+    fpn_result = fpn(fpn_input)
+    return fpn_result
+
+
 def build_FPN():
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
     fpn = FPN()
-    v16_layer_indices = [10, 14, 18]
-    fpn_input = []
-    for each in v16_layer_indices:
-        fpn_input.append(vgg_model.layers[each].output)
-    fpn_result = fpn(fpn_input)
+    fpn_result = FPN_BN_Interface(fpn, vgg_model)
     for layers in vgg_model.layers[:18]:
         layers.trainable = False
-    roi_result = []
-    for i in range(0, len(fpn_result)):
-        x = Conv2D(64, (3, 3), padding='same')(fpn_result[i])
-        x = BatchNormalization()(x)
-        x = Conv2D(64, (3, 3), padding='same')(x)
-        x = Flatten(name='flat_afterFM_' + str(i))(x)
-        x = BatchNormalization()(x)
-        x = Dense(64, activation='relu')(x)
-        roi_result.append(x)
-    # x = Add()(roi_result)
-    x = tf.concat(roi_result, axis=1)
-    x = BatchNormalization()(x)
-    predictions = Dense(2, activation="softmax")(x)
-    model_final = Model(inputs=vgg_model.input, outputs=predictions)
+    x = ClassifierBlockAfterFPN(fpn_result)
+    model_final = Model(inputs=vgg_model.input, outputs=x)
     opt = Adam(lr=0.0001)
     model_final.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(),
@@ -181,7 +195,7 @@ def test_model_od(UseRPN=False, InspectEach=False, InspectNeg=False, SizeFilter=
         print("Backbone network has been loaded.")
     z = 0
     for e, i in enumerate(os.listdir(path)):
-        if i.startswith("4"):
+        if i.startswith("airplane"):
             print(i)
             z += 1
             img = cv2.imread(os.path.join(path, i))
@@ -231,8 +245,8 @@ def test_model_od(UseRPN=False, InspectEach=False, InspectNeg=False, SizeFilter=
             plt.close()
 
 
-Activate_GPU()
+# Activate_GPU()
 # train(NewModel=True)
 # data_generator(UseRPN=False, balance=0.95)
 # CheckBatch(ShowNeg=False)
-test_model_od()
+# test_model_od()

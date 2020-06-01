@@ -69,31 +69,36 @@ def standard_model_test():
         plt.close()
 
 
-def LFM_model_build():
+def LFM_model_build(index=1, FPN_FM=None):
     # LFM means Larger Feature Map
     k = 9
     # region RPN Model
-    feature_map_tile = Input(shape=(None, None, 512))
+    if FPN_FM is not None:
+        feature_map_tile = FPN_FM
+    else:
+        feature_map_tile = Input(shape=(None, None, 512))
     convolution_3x3 = Conv2D(
         filters=512,
         kernel_size=(3, 3),
         padding='same',
-        name="3x3"
+        name="3x3_" + str(index)
     )(feature_map_tile)
     output_deltas = Conv2D(
         filters=4 * k,
         kernel_size=(1, 1),
         activation="linear",
         kernel_initializer="uniform",
-        name="deltas1"
+        name="deltas" + str(index)
     )(convolution_3x3)
     output_scores = Conv2D(
         filters=1 * k,
         kernel_size=(1, 1),
         activation="sigmoid",
         kernel_initializer="uniform",
-        name="scores1"
+        name="scores" + str(index)
     )(convolution_3x3)
+    if FPN_FM is not None:
+        return [[output_scores, output_deltas]]
     model_rpn = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
     model_rpn.compile(optimizer='adam', loss={'scores1': loss_cls, 'deltas1': smoothL1})
     return model_rpn
@@ -323,8 +328,12 @@ def train_RPN():
     else:
         model_rpn = LFM_model_build()
         model_rpn.save(file_path)
+    # tf.keras.utils.plot_model(model_rpn, to_file='model2.png', show_shapes=False, show_layer_names=False,
+    #                           rankdir='TB',
+    #                           expand_nested=False, dpi=96)
     with tf.device('/gpu:0'):
         model_rpn.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
+
 
 # Activate_GPU()
 # train_RPN()
