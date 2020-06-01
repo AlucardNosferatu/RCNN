@@ -13,6 +13,8 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tqdm import tqdm
+
 from utils import loss_cls, smoothL1, RPN_forward, RPN_load, Activate_GPU, get_iou
 
 path = "ProcessedData\\Images"
@@ -49,19 +51,20 @@ def getROIs_fromRPN(image, model_rpn, backbone=None):
     return result_list
 
 
-def data_generator(UseRPN=True, balance=0.7):
+def data_generator(UseRPN=True, balance=None):
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    backbone_network = VGG16(include_top=True, weights="imagenet")
-    backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
-    model_final = tf.keras.models.load_model(
-        "TrainedModels\\RPN_Prototype_28X28.h5",
-        custom_objects={
-            'loss_cls': loss_cls,
-            'smoothL1': smoothL1
-        }
-    )
+    if UseRPN:
+        backbone_network = VGG16(include_top=True, weights="imagenet")
+        backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
+        model_final = tf.keras.models.load_model(
+            "TrainedModels\\RPN_Prototype_28X28.h5",
+            custom_objects={
+                'loss_cls': loss_cls,
+                'smoothL1': smoothL1
+            }
+        )
     for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
         if i.startswith("airplane"):
@@ -110,7 +113,7 @@ def data_generator(UseRPN=True, balance=0.7):
                                 y2 = y + h
                             iou = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                             # 计算候选坐标和这一标签坐标的交并比
-                            if counter < 30:
+                            if counter < 5:
                                 # 选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
                                     # 交并比阈值0.7
@@ -121,7 +124,7 @@ def data_generator(UseRPN=True, balance=0.7):
                                     counter += 1
                             else:
                                 f_flag = 1
-                            if false_counter < 30:
+                            if false_counter < 5:
                                 # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
                                     target_image = image_out[y1:y2, x1:x2]
@@ -322,19 +325,17 @@ def test_model_od(UseRPN=True, x_y_w_h=False, CheckTarget=False):
             plt.close()
 
 
-def CheckBatch():
+def CheckBatch(ShowNeg=True):
     x_new, y_new = data_loader()
-    print("Negative Ratio: "+str(list(y_new).count(0)/y_new.shape[0]))
+    print("Negative Ratio: " + str(list(y_new).count(0) / y_new.shape[0]))
     for i in range(x_new.shape[0]):
-        print(y_new[i])
-        plt.imshow(x_new[i].reshape((224, 224, 3)))
-        plt.show()
-
-
-
+        print(str(y_new[i]) + "   " + str(int(100 * i / x_new.shape[0])) + "%")
+        if ShowNeg or y_new[i] == 1:
+            plt.imshow(x_new[i].reshape((224, 224, 3)))
+            plt.show()
 
 
 # Activate_GPU()
-# data_generator(UseRPN=True, balance=True)
+# data_generator(UseRPN=True, balance=0.7)
 # test_model_od()
 # train()

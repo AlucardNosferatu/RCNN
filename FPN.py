@@ -6,11 +6,11 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from tensorflow.keras import Model
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Add, UpSampling2D, Dropout, BatchNormalization
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, Add, UpSampling2D, BatchNormalization
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from RCNN import OneHot, data_generator, data_loader, CheckBatch
-from utils import Activate_GPU
+from RCNN import OneHot, data_generator, data_loader, getROIs_fromRPN, CheckBatch
+from utils import RPN_load, Activate_GPU
 
 
 class FPN(Model):
@@ -63,10 +63,16 @@ def build_FPN():
         layers.trainable = False
     roi_result = []
     for i in range(0, len(fpn_result)):
-        x = Flatten(name='flat_afterFM_' + str(i))(fpn_result[i])
+        x = Conv2D(64, (3, 3), padding='same')(fpn_result[i])
+        x = BatchNormalization()(x)
+        x = Conv2D(64, (3, 3), padding='same')(x)
+        x = Flatten(name='flat_afterFM_' + str(i))(x)
+        x = BatchNormalization()(x)
         x = Dense(64, activation='relu')(x)
         roi_result.append(x)
-    x = Add()(roi_result)
+    # x = Add()(roi_result)
+    x = tf.concat(roi_result, axis=1)
+    x = BatchNormalization()(x)
     predictions = Dense(2, activation="softmax")(x)
     model_final = Model(inputs=vgg_model.input, outputs=predictions)
     opt = Adam(lr=0.0001)
@@ -79,7 +85,7 @@ def build_FPN():
 
 
 def train(NewModel=False, GenData=False):
-    batch_size = 4
+    batch_size = 8
     if NewModel:
         model_final = build_FPN()
     else:
@@ -94,7 +100,7 @@ def train(NewModel=False, GenData=False):
         x_new, y_new = data_loader()
     one_hot = OneHot()
     y = one_hot.fit_transform(y_new)
-    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
+    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.25)
     del x_new, y, y_new
     train_gen = ImageDataGenerator(
         horizontal_flip=True,
@@ -118,7 +124,7 @@ def train(NewModel=False, GenData=False):
     )
     checkpoint = ModelCheckpoint(
         "TrainedModels\\FPN_Prototype.h5py",
-        monitor='loss',
+        monitor='val_loss',
         verbose=1,
         save_best_only=True,
         save_weights_only=False,
@@ -129,9 +135,9 @@ def train(NewModel=False, GenData=False):
         hist = model_final.fit_generator(
             callbacks=[checkpoint],
             validation_data=test_data,
-            validation_steps=1,
+            validation_steps=10,
             generator=train_data,
-            steps_per_epoch=200,
+            steps_per_epoch=100,
             epochs=1000
         )
     plt.plot(hist.history['loss'])
@@ -163,39 +169,70 @@ def test_model_cl():
         plt.show()
 
 
-def test_model_od():
+def test_model_od(UseRPN=False, InspectEach=False, InspectNeg=False, SizeFilter=None):
+    threshold = 0.001
     path = "ProcessedData\\Images"
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = tf.keras.models.load_model("TrainedModels\\FPN_Prototype.h5py")
+    model_fpn = tf.keras.models.load_model("TrainedModels\\FPN_Prototype.h5py")
+    if UseRPN:
+        model_rpn = RPN_load("TrainedModels\\RPN_Prototype_28X28.h5")
+        print("RPN has been loaded.")
+        backbone = Model(inputs=model_fpn.input, outputs=model_fpn.layers[13].output)
+        print("Backbone network has been loaded.")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
+            print(i)
             z += 1
             img = cv2.imread(os.path.join(path, i))
             image_out = img.copy()
-            # Selective Search will be replaced by ROI proposal
-            ss.setBaseImage(img)
-            ss.switchToSelectiveSearchFast()
-            ss_results = ss.process()
-            for e, result in enumerate(ss_results):
-                if e < 2000:
-                    x, y, w, h = result
-                    target_image = image_out[y:y + h, x:x + w]
+            if UseRPN:
+                ss_results = getROIs_fromRPN(img, model_rpn, backbone)
+            else:
+                ss.setBaseImage(img)
+                ss.switchToSelectiveSearchFast()
+                ss_results = ss.process()
+
+            for roi, result in enumerate(ss_results):
+                if roi < len(ss_results):
+                    if UseRPN:
+                        x1, y1, x2, y2 = result
+                    else:
+                        x, y, w, h = result
+                        x1 = x
+                        y1 = y
+                        x2 = x + w
+                        y2 = y + h
+                        if SizeFilter and (w > SizeFilter or h > SizeFilter):
+                            print("Size exceeds limit, skip this ROI.")
+                            continue
+                    target_image = image_out[y1:y2, x1:x2]
                     resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
-                    img = np.expand_dims(resized, axis=0)
-                    out = model_loaded.predict(img)
-                    print(out)
-                    if out[0][0] > out[0][1]:
-                        cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                    resized = np.expand_dims(resized, axis=0)
+                    out = model_fpn.predict(resized)
+                    # positive = (out[0][0] - out[0][1]) > threshold
+                    positive = out[0][0] > out[0][1]
+                    if positive:
+                        str_result = "plane     " + str(out)
+                    else:
+                        str_result = "not plane " + str(out)
+                    if InspectEach:
+                        if positive or InspectNeg:
+                            plt.figure()
+                            plt.title(str_result)
+                            plt.imshow(resized.reshape((224, 224, 3)))
+                            plt.show()
+                    if positive:
+                        cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
             plt.figure()
-            plt.imshow(image_out)
+            plt.imshow(img)
             plt.savefig("TestResults\\" + i + "_od_test.jpg")
             # plt.show()
             plt.close()
 
 
 Activate_GPU()
-train()
-# data_generator(balance=0.7)
-# CheckBatch()
-# test_model_od()
+# train(NewModel=True)
+# data_generator(UseRPN=False, balance=0.95)
+# CheckBatch(ShowNeg=False)
+test_model_od()
