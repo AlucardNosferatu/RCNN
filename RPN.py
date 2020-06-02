@@ -25,7 +25,7 @@ def data_loader(BasePath="../ProcessedData/"):
     return x_new, y_new
 
 
-def standard_model_test():
+def RPN_test():
     rpn_model = RPN_load(file_path="TrainedModels\\RPN_Prototype_28X28.h5")
     backbone_network = VGG16(include_top=True, weights="imagenet")
     backbone_network = Model(inputs=backbone_network.input, outputs=backbone_network.layers[13].output)
@@ -69,7 +69,7 @@ def standard_model_test():
         plt.close()
 
 
-def LFM_model_build(index=1, FPN_FM=None):
+def RPN_build(index=1, FPN_FM=None):
     # LFM means Larger Feature Map
     k = 9
     # region RPN Model
@@ -88,19 +88,19 @@ def LFM_model_build(index=1, FPN_FM=None):
         kernel_size=(1, 1),
         activation="linear",
         kernel_initializer="uniform",
-        name="deltas" + str(index)
+        name="d" + str(index)
     )(convolution_3x3)
     output_scores = Conv2D(
         filters=1 * k,
         kernel_size=(1, 1),
         activation="sigmoid",
         kernel_initializer="uniform",
-        name="scores" + str(index)
+        name="s" + str(index)
     )(convolution_3x3)
     if FPN_FM is not None:
         return [[output_scores, output_deltas]]
     model_rpn = Model(inputs=[feature_map_tile], outputs=[output_scores, output_deltas])
-    model_rpn.compile(optimizer='adam', loss={'scores1': loss_cls, 'deltas1': smoothL1})
+    model_rpn.compile(optimizer='adam', loss={'s1': loss_cls, 'd1': smoothL1})
     return model_rpn
     # endregion
 
@@ -236,6 +236,7 @@ def produce_batch(backbone_network, file_path, gt_boxes, CheckBatch=False):
     batch_indices = indices_inside[labels != -1]
     # select indices with labels being 1 or 0 (-1 means being ignored)
     batch_indices = (batch_indices / k).astype(np.int)
+    # make batch ids for every 9 anchors in a pixel of FM
     full_labels = unmap(labels, total_amount_of_anchors, indices_inside, fill=-1)
     batch_label_targets = full_labels.reshape(-1, 1, 1, 1 * k)[batch_indices]
     # endregion
@@ -258,6 +259,8 @@ def produce_batch(backbone_network, file_path, gt_boxes, CheckBatch=False):
         fc_3x3 = padded_fcmap[y:y + 3, x:x + 3, :]
         batch_tiles.append(fc_3x3)
     # endregion
+
+    # Conclusion: The batch are divided for each pixel in FM
 
     return np.asarray(batch_tiles), batch_label_targets.tolist(), batch_bbox_targets.tolist()
 
@@ -307,7 +310,7 @@ def input_gen_airplane(CheckBatch=False):
                         batch_bounding_boxes = []
 
 
-def train_RPN():
+def RPN_train():
     file_path = 'TrainedModels\\RPN_Prototype_28X28.h5'
     checkpoint = ModelCheckpoint(filepath=file_path,
                                  monitor='loss',
@@ -326,7 +329,7 @@ def train_RPN():
             }
         )
     else:
-        model_rpn = LFM_model_build()
+        model_rpn = RPN_build()
         model_rpn.save(file_path)
     # tf.keras.utils.plot_model(model_rpn, to_file='model2.png', show_shapes=False, show_layer_names=False,
     #                           rankdir='TB',
@@ -338,3 +341,4 @@ def train_RPN():
 # Activate_GPU()
 # train_RPN()
 # standard_model_test()
+# input_gen_airplane()

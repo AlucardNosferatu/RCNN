@@ -139,6 +139,10 @@ def getImage(file_path="..\\ProcessedData\\Images\\airplane_002.jpg"):
 def drawROIs(image, proposals, img_name=None, output=False):
     file_path = "TestResults\\"
     image_copy = image.copy()
+    if len(image_copy.shape) > 3:
+        image_copy = np.squeeze(image_copy)
+    if image_copy.max() <= 1:
+        image_copy *= 255
     for i in range(proposals.shape[0]):
         x1 = proposals[i, 0]
         y1 = proposals[i, 1]

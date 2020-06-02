@@ -21,10 +21,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/RPNonFPN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/FPN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RPNonFPN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RPNonFPN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,14 +213,14 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="658" y="185" key="#xdebugger.XInspectDialog/0.0.1536.864@0.0.1536.864" timestamp="1590628347583" />
-    <state x="891" y="292" width="488" height="545" key="#xdebugger.evaluate" timestamp="1591011630599">
+    <state x="906" y="99" width="488" height="545" key="#xdebugger.evaluate" timestamp="1591079744893">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="891" y="292" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1591011630599" />
-    <state width="1534" height="440" key="DebuggerActiveHint" timestamp="1590646706483">
+    <state x="906" y="99" width="488" height="545" key="#xdebugger.evaluate/0.0.1536.864@0.0.1536.864" timestamp="1591079744893" />
+    <state width="608" height="440" key="DebuggerActiveHint" timestamp="1591062031803">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1534" height="440" key="DebuggerActiveHint/0.0.1536.864@0.0.1536.864" timestamp="1590646706483" />
+    <state width="608" height="440" key="DebuggerActiveHint/0.0.1536.864@0.0.1536.864" timestamp="1591062031803" />
     <state x="-406" y="142" width="1350" height="678" key="DiffContextDialog" timestamp="1590662182181">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -229,38 +229,38 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1591009106199" />
-    <state width="1515" height="609" key="GridCell.Tab.0.bottom" timestamp="1591012350362">
+    <state width="1515" height="326" key="GridCell.Tab.0.bottom" timestamp="1591080544454">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591012350362" />
-    <state width="1515" height="609" key="GridCell.Tab.0.center" timestamp="1591012350362">
+    <state width="1515" height="326" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591080544454" />
+    <state width="1515" height="326" key="GridCell.Tab.0.center" timestamp="1591080544454">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1591012350362" />
-    <state width="1515" height="609" key="GridCell.Tab.0.left" timestamp="1591012350362">
+    <state width="1515" height="326" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1591080544454" />
+    <state width="1515" height="326" key="GridCell.Tab.0.left" timestamp="1591080544454">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1591012350362" />
-    <state width="1515" height="609" key="GridCell.Tab.0.right" timestamp="1591012350362">
+    <state width="1515" height="326" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1591080544454" />
+    <state width="1515" height="326" key="GridCell.Tab.0.right" timestamp="1591080544454">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1591012350362" />
-    <state width="1515" height="609" key="GridCell.Tab.1.bottom" timestamp="1591012350363">
+    <state width="1515" height="326" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1591080544454" />
+    <state width="1515" height="326" key="GridCell.Tab.1.bottom" timestamp="1591080544455">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591012350363" />
-    <state width="1515" height="609" key="GridCell.Tab.1.center" timestamp="1591012350363">
+    <state width="1515" height="326" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591080544455" />
+    <state width="1515" height="326" key="GridCell.Tab.1.center" timestamp="1591080544455">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1591012350363" />
-    <state width="1515" height="609" key="GridCell.Tab.1.left" timestamp="1591012350363">
+    <state width="1515" height="326" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1591080544455" />
+    <state width="1515" height="326" key="GridCell.Tab.1.left" timestamp="1591080544454">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1591012350363" />
-    <state width="1515" height="609" key="GridCell.Tab.1.right" timestamp="1591012350363">
+    <state width="1515" height="326" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1591080544454" />
+    <state width="1515" height="326" key="GridCell.Tab.1.right" timestamp="1591080544455">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="609" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1591012350363" />
+    <state width="1515" height="326" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1591080544455" />
     <state x="270" y="77" key="SettingsEditor" timestamp="1590802012162">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
@@ -269,13 +269,32 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="325" y="161" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1536.864@0.0.1536.864" timestamp="1590998393507" />
+    <state x="366" y="9" width="779" height="804" key="find.popup" timestamp="1591068440917">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="366" y="9" width="779" height="804" key="find.popup/0.0.1536.864@0.0.1536.864" timestamp="1591068440917" />
     <state x="789" y="148" key="refactoring.ChangeSignatureDialog" timestamp="1590803920131">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="789" y="148" key="refactoring.ChangeSignatureDialog/0.0.1536.864@0.0.1536.864" timestamp="1590803920131" />
+    <state x="548" y="269" key="scopes" timestamp="1591068359176">
+      <screen x="0" y="0" width="1536" height="864" />
+    </state>
+    <state x="548" y="269" key="scopes/0.0.1536.864@0.0.1536.864" timestamp="1591068359176" />
     <state x="431" y="181" width="672" height="678" key="search.everywhere.popup" timestamp="1590717545535">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="431" y="181" width="672" height="678" key="search.everywhere.popup/0.0.1536.864@0.0.1536.864" timestamp="1590717545535" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/RPNonFPN.py</url>
+          <line>252</line>
+          <option name="timeStamp" value="21" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
