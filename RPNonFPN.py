@@ -247,21 +247,31 @@ def FPN_RPN_forward(input_image, fpn_rpn):
 
 def FPN_RPN_test():
     model = FPN_RPN_load()
-
-    for i in range(0, x_new.shape[0], 5):
+    image_path = "ProcessedData\\Images"
+    annotation = "ProcessedData\\Airplanes_Annotations"
+    for e, file_path in enumerate(os.listdir(image_path)):
+        if not file_path.startswith('4'):
+            print("Not a test data, skip it.")
+            continue
         count = 0
-        image_out = x_new[i, :, :, :]
-        r1, r2, r3 = FPN_RPN_forward(np.expand_dims(image_out, axis=0), model)
+        image_out = getImage(os.path.join(image_path, file_path))
+        r1, r2, r3 = FPN_RPN_forward(image_out, model)
+        image_out = np.squeeze(image_out)
         r1 = select_proposals(r1[1], r1[0], AutoSelection=0.25)
         r2 = select_proposals(r2[1], r2[0], AutoSelection=0.25)
         r3 = select_proposals(r3[1], r3[0], AutoSelection=0.25)
+        file_path = file_path.split(".")[0] + ".csv"
+        gt_boxes = parse_label_csv(os.path.join(annotation, file_path))
+        if not gt_boxes.any():
+            print("No target inside.")
+            continue
         gt_values = []
-        for j in range(y_new.shape[1]):
-            x1 = int(y_new[i, j, 0])
-            y1 = int(y_new[i, j, 1])
-            x2 = int(y_new[i, j, 2])
-            y2 = int(y_new[i, j, 3])
-            if x1 == x2 or y1 == y2:
+        for j in range(gt_boxes.shape[0]):
+            x1 = int(gt_boxes[j, 0])
+            y1 = int(gt_boxes[j, 1])
+            x2 = int(gt_boxes[j, 2])
+            y2 = int(gt_boxes[j, 3])
+            if x1 >= x2 or y1 >= y2:
                 print("zero area error!")
                 continue
             gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
@@ -280,18 +290,18 @@ def FPN_RPN_test():
                     iou_list.append(temp)
                 if max(iou_list) > 0.25:
                     count += 1
-                    image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+                    image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 1, 0), 1, cv2.LINE_AA)
                 # else:
-                #     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
+                #     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (1, 0, 0), 1, cv2.LINE_AA)
         plt.figure()
         plt.imshow(image_out)
         plt.savefig(
             "TestResults\\第" +
-            str(i) +
+            str(file_path.split(".csv")[0]) +
             "次测试，命中比例：" +
             str(int(100 * count / (r1[0].shape[0] + r2[0].shape[0] + r3[0].shape[0]))) + "%.jpg")
         plt.close()
 
 
-Activate_GPU()
-FPN_RPN_test()
+# Activate_GPU()
+# FPN_RPN_test()
