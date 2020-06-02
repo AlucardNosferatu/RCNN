@@ -323,8 +323,8 @@ def test_model_od(CheckTarget=False, CheckNeg=False):
         image_out = np.squeeze(image_out)
         image_copy = image_out.copy()
         r1 = select_proposals(r1[1], r1[0], AutoSelection=0.25)
-        r2 = select_proposals(r2[1], r2[0], AutoSelection=0.25)
-        r3 = select_proposals(r3[1], r3[0], AutoSelection=0.25)
+        r2 = select_proposals(r2[1], r2[0], AutoSelection=0.5)
+        r3 = select_proposals(r3[1], r3[0], AutoSelection=0.75)
         file_path = file_path.split(".")[0] + ".csv"
         gt_boxes = parse_label_csv(os.path.join(annotation, file_path))
         if not gt_boxes.any():
@@ -354,8 +354,9 @@ def test_model_od(CheckTarget=False, CheckNeg=False):
                     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (1, 0, 0), 1, cv2.LINE_AA)
                 target_image = image_copy[y1:y2, x1:x2]
                 target_image = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
-                out = model_cnn.predict(np.expand_dims(target_image, axis=0))
+                out = model_cnn.predict(np.expand_dims(target_image, axis=0)*255)
                 positive = out[0][0] > out[0][1]
+                # print(out[0][0] - out[0][1])
                 if CheckTarget:
                     if positive or CheckNeg:
                         if positive:
@@ -365,6 +366,7 @@ def test_model_od(CheckTarget=False, CheckNeg=False):
                         plt.imshow(np.squeeze(target_image))
                         plt.show()
                 if out[0][0] > out[0][1]:
+
                     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 1, 0), 1, cv2.LINE_AA)
         plt.figure()
         plt.imshow(image_out)
@@ -373,7 +375,7 @@ def test_model_od(CheckTarget=False, CheckNeg=False):
         plt.close()
 
 
-Activate_GPU()
-FPN_RPN_test()
+# Activate_GPU()
+# FPN_RPN_test()
 # test_model_od()
 # FPN_RPN_train()

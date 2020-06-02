@@ -51,9 +51,12 @@ def getROIs_fromRPN(image, model_rpn, backbone=None):
     return result_list
 
 
-def data_generator(UseRPN=True, balance=None):
+def data_generator(UseRPN=True, balance=None, forFPN=False):
     train_images = []
     train_labels = []
+    batch_per_img = 30
+    if forFPN:
+        batch_per_img = 5
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     if UseRPN:
         backbone_network = VGG16(include_top=True, weights="imagenet")
@@ -113,7 +116,7 @@ def data_generator(UseRPN=True, balance=None):
                                 y2 = y + h
                             iou = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                             # 计算候选坐标和这一标签坐标的交并比
-                            if counter < 5:
+                            if counter < batch_per_img:
                                 # 选择交并比大于阈值的头30个候选坐标
                                 if iou > 0.70:
                                     # 交并比阈值0.7
@@ -124,7 +127,7 @@ def data_generator(UseRPN=True, balance=None):
                                     counter += 1
                             else:
                                 f_flag = 1
-                            if false_counter < 5:
+                            if false_counter < batch_per_img:
                                 # IoU低于阈值0.3，前30个坐标作为负样本（背景）
                                 if iou < 0.3:
                                     target_image = image_out[y1:y2, x1:x2]
@@ -177,7 +180,7 @@ def data_loader():
 def RCNN_train(NewModel=False, GenData=False):
     if NewModel:
         vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
-        for layers in vgg_model.layers[:15]:
+        for layers in vgg_model.layers[:14]:
             layers.trainable = False
         x = vgg_model.layers[-2].output
         predictions = Dense(2, activation="softmax")(x)
@@ -335,7 +338,7 @@ def CheckBatch(ShowNeg=True):
             plt.show()
 
 
-# Activate_GPU()
-# data_generator(UseRPN=True, balance=0.7)
+Activate_GPU()
+# data_generator(UseRPN=True, balance=0.95)
 # test_model_od()
-# RCNN_train()
+RCNN_train()
