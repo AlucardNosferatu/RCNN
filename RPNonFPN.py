@@ -25,15 +25,13 @@ def getImage(file_path):
     return img
 
 
-def produce_batch(gt_boxes, fm_size):
+def produce_batch(anchor_scale, gt_boxes, fm_size):
     bg_fg_fraction = 2
     k = 9
     total_amount_of_anchors = k * fm_size * fm_size
-
     img_width = 224
     img_height = 224
-
-    all_anchors = getAnchors(width=fm_size, height=fm_size)
+    all_anchors = getAnchors(anchor_scale=anchor_scale, width=fm_size, height=fm_size)
     border = 0
     indices_inside = np.where(
         (all_anchors[:, 0] >= -border) &
@@ -100,6 +98,7 @@ def produce_batch(gt_boxes, fm_size):
 def input_gen_airplane():
     annotation = "ProcessedData\\Airplanes_Annotations"
     images_path = "ProcessedData\\Images"
+    anchor_scale = np.asarray([3, 6, 12])
     batch_size = 32
     batch_images = []
     batch_labels_1 = []
@@ -118,14 +117,17 @@ def input_gen_airplane():
                     image_filename = os.path.join(images_path, image_filename)
                     img = getImage(image_filename)
                     labels_1, bounding_boxes_1 = produce_batch(
+                        anchor_scale=anchor_scale,
                         gt_boxes=gt_boxes,
                         fm_size=28
                     )
                     labels_2, bounding_boxes_2 = produce_batch(
+                        anchor_scale=anchor_scale,
                         gt_boxes=gt_boxes,
                         fm_size=14
                     )
                     labels_3, bounding_boxes_3 = produce_batch(
+                        anchor_scale=anchor_scale,
                         gt_boxes=gt_boxes,
                         fm_size=7
                     )
@@ -205,7 +207,7 @@ def FPN_RPN_load():
     return model_fpn_rpn
 
 
-def FPN_RPN_train():
+def FPN_RPN_train(NewModel=False):
     file_path = "TrainedModels\\FPN_RPN.h5py"
     checkpoint = ModelCheckpoint(filepath=file_path,
                                  monitor='loss',
@@ -215,7 +217,10 @@ def FPN_RPN_train():
                                  mode='auto',
                                  save_freq='epoch'
                                  )
-    if os.path.exists(file_path):
+    if (not os.path.exists(file_path)) or NewModel:
+        model = FPN_RPN_build()
+        model.save(file_path)
+    else:
         model = tf.keras.models.load_model(
             file_path,
             custom_objects={
@@ -223,9 +228,7 @@ def FPN_RPN_train():
                 'smoothL1': smoothL1
             }
         )
-    else:
-        model = FPN_RPN_build()
-        model.save(file_path)
+
     with tf.device('/gpu:0'):
         model.fit_generator(input_gen_airplane(), steps_per_epoch=100, epochs=800, callbacks=[checkpoint])
 
@@ -290,7 +293,7 @@ def FPN_RPN_test():
                 for gt_val in gt_values:
                     temp = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
                     iou_list.append(temp)
-                if max(iou_list) > 0.25:
+                if max(iou_list) > 0.7:
                     count += 1
                     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 1, 0), 1, cv2.LINE_AA)
                 # else:
@@ -305,10 +308,11 @@ def FPN_RPN_test():
         plt.close()
 
 
-def test_model_od():
+def test_model_od(CheckTarget=False, CheckNeg=False):
     fpn_rpn = FPN_RPN_load()
     model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     image_path = "ProcessedData\\Images"
+    annotation = "ProcessedData\\Airplanes_Annotations"
     for e, file_path in enumerate(os.listdir(image_path)):
         if not file_path.startswith('4'):
             print("Not a test data, skip it.")
@@ -321,15 +325,45 @@ def test_model_od():
         r1 = select_proposals(r1[1], r1[0], AutoSelection=0.25)
         r2 = select_proposals(r2[1], r2[0], AutoSelection=0.25)
         r3 = select_proposals(r3[1], r3[0], AutoSelection=0.25)
+        file_path = file_path.split(".")[0] + ".csv"
+        gt_boxes = parse_label_csv(os.path.join(annotation, file_path))
+        if not gt_boxes.any():
+            print("No target inside.")
+            continue
+        gt_values = []
+        for j in range(gt_boxes.shape[0]):
+            x1 = int(gt_boxes[j, 0])
+            y1 = int(gt_boxes[j, 1])
+            x2 = int(gt_boxes[j, 2])
+            y2 = int(gt_boxes[j, 3])
+            if x1 >= x2 or y1 >= y2:
+                print("zero area error!")
+                continue
+            gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
         for proposals in [r1[0], r2[0], r3[0]]:
             for roi in tqdm(range(proposals.shape[0])):
                 x1 = int(proposals[roi, 0])
                 y1 = int(proposals[roi, 1])
                 x2 = int(proposals[roi, 2])
                 y2 = int(proposals[roi, 3])
+                iou_list = []
+                for gt_val in gt_values:
+                    temp = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+                    iou_list.append(temp)
+                if max(iou_list) > 0.5:
+                    image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (1, 0, 0), 1, cv2.LINE_AA)
                 target_image = image_copy[y1:y2, x1:x2]
                 target_image = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                 out = model_cnn.predict(np.expand_dims(target_image, axis=0))
+                positive = out[0][0] > out[0][1]
+                if CheckTarget:
+                    if positive or CheckNeg:
+                        if positive:
+                            plt.title("plane     " + str(out))
+                        else:
+                            plt.title("not plane " + str(out))
+                        plt.imshow(np.squeeze(target_image))
+                        plt.show()
                 if out[0][0] > out[0][1]:
                     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 1, 0), 1, cv2.LINE_AA)
         plt.figure()
@@ -339,5 +373,7 @@ def test_model_od():
         plt.close()
 
 
-# Activate_GPU()
+Activate_GPU()
+FPN_RPN_test()
 # test_model_od()
+# FPN_RPN_train()

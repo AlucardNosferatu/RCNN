@@ -52,13 +52,13 @@ def RPN_load(file_path='..\\TrainedModels\\RPN_Prototype.h5'):
     return rpn_model
 
 
-def getAnchors(img_width=224, img_height=224, width=14, height=14):
+def getAnchors(anchor_scale=np.asarray([3, 6, 12]), img_width=224, img_height=224, width=14, height=14):
     # region configure parameters
     num_feature_map = width * height
     w_stride = img_width / width
     h_stride = img_height / height
     # endregion
-    base_anchors = generate_anchors(w_stride, h_stride)
+    base_anchors = generate_anchors(w_stride, h_stride, scales=anchor_scale)
     shift_x = np.arange(0, width) * w_stride
     shift_y = np.arange(0, height) * h_stride
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
@@ -246,6 +246,8 @@ def generate_anchors(base_width=16, base_height=16, ratios=[0.5, 1, 2],
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales wrt a reference (0, 0, w_stride-1, h_stride-1) window.
     """
+    # if scales is None:
+
     base_anchor = np.array([1, 1, base_width, base_height]) - 1
     ratio_anchors = _ratio_enum(base_anchor, ratios)
     anchors = np.vstack(
