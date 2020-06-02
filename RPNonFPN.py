@@ -1,13 +1,15 @@
 import os
+import cv2
 import numpy as np
 import tensorflow as tf
+import matplotlib.pyplot as plt
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
 from FPN import FPN, FPN_BN_Interface
-from RPN import RPN_build
+from RPN import RPN_build, data_loader
 from utils import loss_cls, smoothL1, getAnchors, bbox_overlaps, unmap, bbox_transform, \
-    parse_label_csv, Activate_GPU, DA2ROI, drawROIs
+    parse_label_csv, Activate_GPU, DA2ROI, drawROIs, get_iou, select_proposals
 
 
 def getImage(file_path):
@@ -245,12 +247,51 @@ def FPN_RPN_forward(input_image, fpn_rpn):
 
 def FPN_RPN_test():
     model = FPN_RPN_load()
-    image = getImage("ProcessedData\\Images\\42849.jpg")
-    r1, r2, r3 = FPN_RPN_forward(image, model)
-    drawROIs(image, r1[0])
-    drawROIs(image, r2[0])
-    drawROIs(image, r3[0])
-    print("Done")
+
+    for i in range(0, x_new.shape[0], 5):
+        count = 0
+        image_out = x_new[i, :, :, :]
+        r1, r2, r3 = FPN_RPN_forward(np.expand_dims(image_out, axis=0), model)
+        r1 = select_proposals(r1[1], r1[0], AutoSelection=0.25)
+        r2 = select_proposals(r2[1], r2[0], AutoSelection=0.25)
+        r3 = select_proposals(r3[1], r3[0], AutoSelection=0.25)
+        gt_values = []
+        for j in range(y_new.shape[1]):
+            x1 = int(y_new[i, j, 0])
+            y1 = int(y_new[i, j, 1])
+            x2 = int(y_new[i, j, 2])
+            y2 = int(y_new[i, j, 3])
+            if x1 == x2 or y1 == y2:
+                print("zero area error!")
+                continue
+            gt_values.append({"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+        for proposals in [r1[0], r2[0], r3[0]]:
+            for roi in range(proposals.shape[0]):
+                x1 = int(proposals[roi, 0])
+                y1 = int(proposals[roi, 1])
+                x2 = int(proposals[roi, 2])
+                y2 = int(proposals[roi, 3])
+                if x1 >= x2 or y1 >= y2:
+                    print("zero area error!")
+                    continue
+                iou_list = []
+                for gt_val in gt_values:
+                    temp = get_iou(gt_val, {"x1": x1, "x2": x2, "y1": y1, "y2": y2})
+                    iou_list.append(temp)
+                if max(iou_list) > 0.25:
+                    count += 1
+                    image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 255, 0), 1, cv2.LINE_AA)
+                # else:
+                #     image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (255, 0, 0), 1, cv2.LINE_AA)
+        plt.figure()
+        plt.imshow(image_out)
+        plt.savefig(
+            "TestResults\\第" +
+            str(i) +
+            "次测试，命中比例：" +
+            str(int(100 * count / (r1[0].shape[0] + r2[0].shape[0] + r3[0].shape[0]))) + "%.jpg")
+        plt.close()
 
 
 Activate_GPU()
+FPN_RPN_test()

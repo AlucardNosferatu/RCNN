@@ -174,7 +174,7 @@ def data_loader():
     return x_new, y_new
 
 
-def train(NewModel=False, GenData=False):
+def RCNN_train(NewModel=False, GenData=False):
     if NewModel:
         vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
         for layers in vgg_model.layers[:15]:

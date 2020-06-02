@@ -81,7 +81,7 @@ def FPN_BN_Interface(fpn, backbone):
     return fpn_result
 
 
-def build_FPN():
+def FPN_build():
     vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
     fpn = FPN()
     fpn_result = FPN_BN_Interface(fpn, vgg_model)
@@ -98,10 +98,10 @@ def build_FPN():
     return model_final
 
 
-def train(NewModel=False, GenData=False):
+def FPN_train(NewModel=False, GenData=False):
     batch_size = 8
     if NewModel:
-        model_final = build_FPN()
+        model_final = FPN_build()
     else:
         model_final = tf.keras.models.load_model("TrainedModels\\FPN_Prototype.h5py")
     tf.keras.utils.plot_model(
