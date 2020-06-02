@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tqdm import tqdm
+
 from FPN import FPN, FPN_BN_Interface
 from RPN import RPN_build, data_loader
 from utils import loss_cls, smoothL1, getAnchors, bbox_overlaps, unmap, bbox_transform, \
@@ -303,5 +305,39 @@ def FPN_RPN_test():
         plt.close()
 
 
+def test_model_od():
+    fpn_rpn = FPN_RPN_load()
+    model_cnn = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
+    image_path = "ProcessedData\\Images"
+    for e, file_path in enumerate(os.listdir(image_path)):
+        if not file_path.startswith('4'):
+            print("Not a test data, skip it.")
+            continue
+        print(file_path)
+        image_out = getImage(os.path.join(image_path, file_path))
+        r1, r2, r3 = FPN_RPN_forward(image_out, fpn_rpn)
+        image_out = np.squeeze(image_out)
+        image_copy = image_out.copy()
+        r1 = select_proposals(r1[1], r1[0], AutoSelection=0.25)
+        r2 = select_proposals(r2[1], r2[0], AutoSelection=0.25)
+        r3 = select_proposals(r3[1], r3[0], AutoSelection=0.25)
+        for proposals in [r1[0], r2[0], r3[0]]:
+            for roi in tqdm(range(proposals.shape[0])):
+                x1 = int(proposals[roi, 0])
+                y1 = int(proposals[roi, 1])
+                x2 = int(proposals[roi, 2])
+                y2 = int(proposals[roi, 3])
+                target_image = image_copy[y1:y2, x1:x2]
+                target_image = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
+                out = model_cnn.predict(np.expand_dims(target_image, axis=0))
+                if out[0][0] > out[0][1]:
+                    image_out = cv2.rectangle(image_out, (x1, y1), (x2, y2), (0, 1, 0), 1, cv2.LINE_AA)
+        plt.figure()
+        plt.imshow(image_out)
+        plt.savefig("TestResults\\" + file_path.split('.')[0] + "_od_test.jpg")
+        # plt.show()
+        plt.close()
+
+
 # Activate_GPU()
-# FPN_RPN_test()
+# test_model_od()
