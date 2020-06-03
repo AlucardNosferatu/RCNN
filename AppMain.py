@@ -3,7 +3,9 @@ from forVOC2007 import transfer_model_train, data_generator
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
+import requests
 import time
+import json
 import cv2
 import os
 
@@ -76,6 +78,38 @@ def time_test(model_path="TrainedModels\\RCNN.h5", file_path=path):
         plt.close()
 
 
-time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
+def ExportModel():
+    model_path = "TrainedModels\\RCNN.h5"
+    model = tf.keras.models.load_model(model_path)
+    signature = tf.compat.v1.saved_model.signature_def_utils.predict_signature_def(
+        inputs={'input_param': model.input},
+        outputs={'type': model.output}
+    )
+    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder('TFServing')
+    builder.add_meta_graph_and_variables(
+        sess=tf.compat.v1.keras.backend.get_session(),
+        tags=[tf.compat.v1.saved_model.tag_constants.SERVING],
+        signature_def_map={
+            tf.compat.v1.saved_model.signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY: signature
+        }
+    )
+    builder.save()
+
+
+def TFS_Client():
+    server_url = 'http://localhost:1224/v1/models/rcnn:predict'
+    image_url = 'ProcessedData\\Images\\airplane_209.jpg'
+    img = cv2.imread(image_url)
+    img = cv2.resize(img, (224, 224))
+    img = np.expand_dims(img, axis=0)
+    dic = {"instances": img.tolist()}
+    dic_json = json.dumps(dic)
+    response = requests.post(server_url, data=dic_json)
+    response.raise_for_status()
+    print(response.content)
+
+
+TFS_Client()
+# time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
 # transfer_model_train()
 # data_generator()
