@@ -173,8 +173,8 @@ def data_generator():
 
 
 def data_loader():
-    TI_PKL = open('train_images.pkl', 'rb')
-    TL_PKL = open('train_labels.pkl', 'rb')
+    TI_PKL = open('ProcessedData\\train_images_cnn.pkl', 'rb')
+    TL_PKL = open('ProcessedData\\train_labels_cnn.pkl', 'rb')
     train_images = pickle.load(TI_PKL)
     train_labels = pickle.load(TL_PKL)
     TI_PKL.close()
@@ -199,7 +199,7 @@ def train(NewModel=False, GenData=False):
             metrics=["accuracy"]
         )
     else:
-        model_final = tf.keras.models.load_model("RCNN.h5")
+        model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
 
     if GenData:
         x_new, y_new = data_generator()
@@ -208,7 +208,7 @@ def train(NewModel=False, GenData=False):
 
     lenc = MyLabelBinarizer()
     y = lenc.fit_transform(y_new)
-    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
+    x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.5)
     trdata = ImageDataGenerator(
         horizontal_flip=True,
         vertical_flip=True,
@@ -228,10 +228,10 @@ def train(NewModel=False, GenData=False):
         y=y_test
     )
     checkpoint = ModelCheckpoint(
-        "RCNN.h5",
+        "TrainedModels\\RCNN.h5",
         monitor='val_loss',
         verbose=1,
-        save_best_only=False,
+        save_best_only=True,
         save_weights_only=False,
         mode='auto',
         save_freq='epoch'
@@ -253,7 +253,7 @@ def train(NewModel=False, GenData=False):
             validation_data=testdata,
             validation_steps=2,
             generator=traindata,
-            steps_per_epoch=10,
+            steps_per_epoch=50,
             epochs=1000
         )
     plt.plot(hist.history['loss'])

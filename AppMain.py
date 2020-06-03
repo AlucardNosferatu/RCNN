@@ -1,4 +1,4 @@
-from RCNN import path
+from RCNN import path, train
 from forVOC2007 import transfer_model_train, data_generator
 import matplotlib.pyplot as plt
 import tensorflow as tf
@@ -109,6 +109,8 @@ def TFS_Client():
     print(response.content)
 
 
+# train()
+# ExportModel()
 TFS_Client()
 # time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
 # transfer_model_train()
