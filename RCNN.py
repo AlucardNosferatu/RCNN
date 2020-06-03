@@ -340,5 +340,5 @@ def CheckBatch(ShowNeg=True):
 
 Activate_GPU()
 # data_generator(UseRPN=True, balance=0.95)
-# test_model_od()
-RCNN_train()
+test_model_od()
+# RCNN_train()
