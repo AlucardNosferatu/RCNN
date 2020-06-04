@@ -97,16 +97,24 @@ def ExportModel():
 
 
 def TFS_Client():
-    server_url = 'http://localhost:1224/v1/models/rcnn:predict'
-    image_url = 'ProcessedData\\Images\\airplane_209.jpg'
+    server_url = 'http://134.134.50.135:8521/v1/models/rcnn:predict'
+    image_url = 'ProcessedData\\Images\\428452.jpg'
+    image_url = 'ProcessedData\\Images\\airplane_349.jpg'
     img = cv2.imread(image_url)
+    plt.imshow(img)
+    plt.show()
     img = cv2.resize(img, (224, 224))
     img = np.expand_dims(img, axis=0)
     dic = {"instances": img.tolist()}
     dic_json = json.dumps(dic)
     response = requests.post(server_url, data=dic_json)
     response.raise_for_status()
-    print(response.content)
+    dic_json = json.loads(response.content)
+    result = dic_json['predictions']
+    if result[0][0] > result[0][1]:
+        print("plane")
+    else:
+        print("no plane")
 
 
 # train()

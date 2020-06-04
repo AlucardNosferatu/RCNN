@@ -1,16 +1,17 @@
-import os, cv2
+import os
+import cv2
+import pickle
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras import Model, optimizers
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelBinarizer
 import matplotlib.pyplot as plt
-import pickle
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 
 
 class MyLabelBinarizer(LabelBinarizer):
@@ -28,8 +29,8 @@ class MyLabelBinarizer(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
-path = "ProcessedData\\Images"
-annot = "ProcessedData\\Airplanes_Annotations"
+path = "ProcessedData/Images"
+annot = "ProcessedData/Airplanes_Annotations"
 
 
 def demo():
@@ -159,8 +160,8 @@ def data_generator():
             print(e)
             print("error in " + filename)
             continue
-    TI_PKL = open('train_images.pkl', 'wb')
-    TL_PKL = open('train_labels.pkl', 'wb')
+    TI_PKL = open('ProcessedData/train_images_cnn.pkl', 'wb')
+    TL_PKL = open('ProcessedData/train_labels_cnn.pkl', 'wb')
     pickle.dump(train_images, TI_PKL)
     pickle.dump(train_labels, TL_PKL)
     TI_PKL.close()
@@ -171,8 +172,8 @@ def data_generator():
 
 
 def data_loader():
-    TI_PKL = open('ProcessedData\\train_images_cnn.pkl', 'rb')
-    TL_PKL = open('ProcessedData\\train_labels_cnn.pkl', 'rb')
+    TI_PKL = open('ProcessedData/train_images_cnn.pkl', 'rb')
+    TL_PKL = open('ProcessedData/train_labels_cnn.pkl', 'rb')
     train_images = pickle.load(TI_PKL)
     train_labels = pickle.load(TL_PKL)
     TI_PKL.close()
@@ -197,7 +198,7 @@ def train(NewModel=False, GenData=False):
             metrics=["accuracy"]
         )
     else:
-        model_final = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
+        model_final = tf.keras.models.load_model("TrainedModels/RCNN.h5")
 
     if GenData:
         x_new, y_new = data_generator()
@@ -226,7 +227,7 @@ def train(NewModel=False, GenData=False):
         y=y_test
     )
     checkpoint = ModelCheckpoint(
-        "TrainedModels\\RCNN.h5",
+        "TrainedModels/RCNN.h5",
         monitor='val_loss',
         verbose=1,
         save_best_only=True,
@@ -241,7 +242,7 @@ def train(NewModel=False, GenData=False):
         verbose=1,
         mode='auto'
     )
-    with tf.device('/gpu:0'):
+    with tf.device('/cpu:0'):
         hist = model_final.fit_generator(
             callbacks=[checkpoint],
             validation_data=testdata,
@@ -261,7 +262,7 @@ def train(NewModel=False, GenData=False):
 
 
 def test_model_cl():
-    model_final = tf.keras.models.load_model("RCNN.h5")
+    model_final = tf.keras.models.load_model("TrainedModels/RCNN.h5")
     x_new, y_new = data_loader()
     lenc = MyLabelBinarizer()
     y = lenc.fit_transform(y_new)
@@ -281,7 +282,7 @@ def test_model_cl():
 
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = tf.keras.models.load_model("RCNN.h5")
+    model_loaded = tf.keras.models.load_model("TrainedModels/RCNN.h5")
     z = 0
     for e, i in enumerate(os.listdir(path)):
         if i.startswith("4"):
