@@ -18,8 +18,10 @@ Linux = False
 if platform.system() == "Linux":
     Linux = True
 if Linux:
+    print("Linux")
     slash = "/"
 else:
+    print("Windows")
     slash = "\\"
 
 path = "ProcessedData" + slash + "Images"
@@ -323,5 +325,6 @@ def Activate_GPU():
     for gpu in gpu_list:
         tf.config.experimental.set_memory_growth(gpu, True)
 
-# Activate_GPU()
-# train()
+
+Activate_GPU()
+train()

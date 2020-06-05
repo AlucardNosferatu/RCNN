@@ -85,7 +85,7 @@ def ExportModel():
         inputs={'input_param': model.input},
         outputs={'type': model.output}
     )
-    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder('TFServing')
+    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder('TFServing\\00000123')
     builder.add_meta_graph_and_variables(
         sess=tf.compat.v1.keras.backend.get_session(),
         tags=[tf.compat.v1.saved_model.tag_constants.SERVING],
