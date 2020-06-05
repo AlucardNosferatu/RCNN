@@ -119,7 +119,7 @@ def TFS_Client():
 
 # train()
 # ExportModel()
-TFS_Client()
+# TFS_Client()
 # time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
 # transfer_model_train()
 # data_generator()

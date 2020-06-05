@@ -21,7 +21,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/RCNN_Linux.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AppMain.py" beforeDir="false" afterPath="$PROJECT_DIR$/AppMain.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
@@ -59,14 +58,14 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PythonContentEntriesConfigurable" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.project" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\16413\Documents\GitHub\FastRCNN" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.AppMain">
+  <component name="RunManager" selected="Python.RCNN">
     <configuration name="AppMain" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="FastRCNN" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -164,42 +163,42 @@
       <screen x="0" y="0" width="1536" height="864" />
     </state>
     <state x="548" y="187" key="FileChooserDialogImpl/0.0.1536.864@0.0.1536.864" timestamp="1591237160004" />
-    <state width="1515" height="274" key="GridCell.Tab.0.bottom" timestamp="1591265323608">
+    <state width="1515" height="223" key="GridCell.Tab.0.bottom" timestamp="1591321130656">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591265323608" />
-    <state width="1515" height="274" key="GridCell.Tab.0.center" timestamp="1591265323608">
+    <state width="1515" height="223" key="GridCell.Tab.0.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591321130656" />
+    <state width="1515" height="223" key="GridCell.Tab.0.center" timestamp="1591321130656">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1591265323608" />
-    <state width="1515" height="274" key="GridCell.Tab.0.left" timestamp="1591265323607">
+    <state width="1515" height="223" key="GridCell.Tab.0.center/0.0.1536.864@0.0.1536.864" timestamp="1591321130656" />
+    <state width="1515" height="223" key="GridCell.Tab.0.left" timestamp="1591321130656">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1591265323607" />
-    <state width="1515" height="274" key="GridCell.Tab.0.right" timestamp="1591265323608">
+    <state width="1515" height="223" key="GridCell.Tab.0.left/0.0.1536.864@0.0.1536.864" timestamp="1591321130656" />
+    <state width="1515" height="223" key="GridCell.Tab.0.right" timestamp="1591321130656">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1591265323608" />
-    <state width="1515" height="274" key="GridCell.Tab.1.bottom" timestamp="1591265317162">
+    <state width="1515" height="223" key="GridCell.Tab.0.right/0.0.1536.864@0.0.1536.864" timestamp="1591321130656" />
+    <state width="1515" height="274" key="GridCell.Tab.1.bottom" timestamp="1591265930139">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591265317162" />
-    <state width="1515" height="274" key="GridCell.Tab.1.center" timestamp="1591265317161">
+    <state width="1515" height="274" key="GridCell.Tab.1.bottom/0.0.1536.864@0.0.1536.864" timestamp="1591265930139" />
+    <state width="1515" height="274" key="GridCell.Tab.1.center" timestamp="1591265930139">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1591265317161" />
-    <state width="1515" height="274" key="GridCell.Tab.1.left" timestamp="1591265317161">
+    <state width="1515" height="274" key="GridCell.Tab.1.center/0.0.1536.864@0.0.1536.864" timestamp="1591265930139" />
+    <state width="1515" height="274" key="GridCell.Tab.1.left" timestamp="1591265930139">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1591265317161" />
-    <state width="1515" height="274" key="GridCell.Tab.1.right" timestamp="1591265317161">
+    <state width="1515" height="274" key="GridCell.Tab.1.left/0.0.1536.864@0.0.1536.864" timestamp="1591265930139" />
+    <state width="1515" height="274" key="GridCell.Tab.1.right" timestamp="1591265930139">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state width="1515" height="274" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1591265317161" />
-    <state x="270" y="77" key="SettingsEditor" timestamp="1590283365723">
+    <state width="1515" height="274" key="GridCell.Tab.1.right/0.0.1536.864@0.0.1536.864" timestamp="1591265930139" />
+    <state x="270" y="77" key="SettingsEditor" timestamp="1591318786553">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
-    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1590283365723" />
+    <state x="270" y="77" key="SettingsEditor/0.0.1536.864@0.0.1536.864" timestamp="1591318786553" />
     <state width="391" height="439" key="XDebugger.FullValuePopup" timestamp="1591161738302">
       <screen x="0" y="0" width="1536" height="864" />
     </state>
