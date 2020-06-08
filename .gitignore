@@ -1,0 +1,12 @@
+*.csv
+*.jpg
+*.h5
+*.pkl
+*.png
+ieeercnn_vgg16_1.h5py/
+ProcessedData/VOC2007_XML/
+TFServing/00000123/
+TrainedModels/FPN_Prototype.h5py/
+TrainedModels/FPN_RPN.h5py/
+TensorBoard/train/
+TensorBoard/validation/
