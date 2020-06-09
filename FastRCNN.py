@@ -558,6 +558,6 @@ def CheckBatch(trainFast=True):
 # CheckBatch()
 # Activate_GPU()
 # batch_test()
-# train()
-build_model()
+train()
+# build_model()
 # data_generator()
