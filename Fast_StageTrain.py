@@ -117,7 +117,7 @@ def build_roi_p_classifier():
     pooled_square_size = 56
     roi_input = Input(shape=(num_rois, 4), name="roi_input")
     fm_input = Input(shape=(224, 224, 3), name="fm_input")
-    x = RoiPoolingConv(pooled_square_size, roi_input.shape[1])([fm_input, roi_input])
+    x = RoiPoolingConv(pooled_square_size)([fm_input, roi_input])
     x = TimeDistributed(Conv2D(128, (3, 3), activation='relu', padding='same'))(x)
     x = TimeDistributed(Conv2D(128, (3, 3), activation='relu', padding='same'))(x)
     x = TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2)))(x)

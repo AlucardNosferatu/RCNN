@@ -1,15 +1,11 @@
-import os
 import cv2
-import numpy as np
-import pandas as pd
-import tensorflow as tf
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Layer
+from tqdm import tqdm
+from Config import batch_size, img_height, img_width, n_channels
 from ROI_Pooling import RoiPoolingConv
-from Config import batch_size, img_height, img_width, n_channels, n_rois, pooled_height, pooled_width
-from FastRCNN import annotation
 
 
 # Create feature map input
@@ -17,8 +13,15 @@ def prototype_test():
     feature_maps_shape = (batch_size, img_height, img_width, n_channels)
     feature_maps_np = np.ones(feature_maps_shape, dtype='float32')
     feature_maps_np[0, img_height - 1, img_width - 3, 0] = 50
-    roiss_np = np.asarray([[[0.5, 0.2, 0.7, 0.4], [0.0, 0.0, 1.0, 1.0]]], dtype='float32')
-    out_roi_pool = RoiPoolingConv(7, 2)([feature_maps_np, roiss_np])
+    roiss_np = np.asarray(
+        [
+            [[0.0, 0.0, 0.1, 0.1], [0.0, 0.0, 0.2, 0.2]],
+            [[0.0, 0.0, 0.3, 0.3], [0.0, 0.0, 0.4, 0.4]],
+            [[0.0, 0.0, 0.5, 0.5], [0.0, 0.0, 0.6, 0.6]]
+        ],
+        dtype='float32'
+    )
+    out_roi_pool = RoiPoolingConv(7)([feature_maps_np, roiss_np])
     print(out_roi_pool)
 
 
@@ -87,3 +90,5 @@ def test_per_layer(model, I, Y, e):
     plt.savefig("RP_TestResult\\" + str(e) + "_CP.png")
     plt.close('all')
 
+
+prototype_test()

@@ -35,7 +35,7 @@ def get_slash():
 slash, linux = get_slash()
 
 EP = 100
-BS = 8
+BS = 2
 
 
 class OneHot(LabelBinarizer):
@@ -79,29 +79,18 @@ def get_iou(bb1, bb2):
 
 def build_model():
     pooled_square_size = 7
-    num_rois = 32
-    roi_input = Input(shape=(num_rois, 4), name="input_2")
+    roi_input = Input(shape=(None, 4), name="input_2")
     model_cnn = tf.keras.applications.VGG16(
         include_top=True,
         weights='imagenet'
     )
     model_cnn.trainable = True
-    x = model_cnn.layers[13].output
-    x = RoiPoolingConv(pooled_square_size, roi_input.shape[1])([x, roi_input])
+    x = model_cnn.layers[17].output
+    x = RoiPoolingConv(pooled_square_size)([x, roi_input])
     x = TimeDistributed(Flatten())(x)
     x = TimeDistributed(
         Dense(
-            2048,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    # x = TimeDistributed(Dropout(0.5))(x)
-    x = TimeDistributed(
-        Dense(
-            1024,
+            4096,
             activation='selu',
             kernel_initializer=RandomNormal(stddev=0.01),
             kernel_regularizer=l2(0.0005),
@@ -110,78 +99,14 @@ def build_model():
     )(x)
     x = TimeDistributed(
         Dense(
-            2048,
+            4096,
             activation='selu',
             kernel_initializer=RandomNormal(stddev=0.01),
             kernel_regularizer=l2(0.0005),
             bias_regularizer=l2(0.0005)
         )
     )(x)
-    x = TimeDistributed(
-        Dense(
-            1024,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            512,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            1024,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            512,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            256,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            512,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    x = TimeDistributed(
-        Dense(
-            256,
-            activation='selu',
-            kernel_initializer=RandomNormal(stddev=0.01),
-            kernel_regularizer=l2(0.0005),
-            bias_regularizer=l2(0.0005)
-        )
-    )(x)
-    # x = TimeDistributed(Dropout(0.5))(x)
-    x = TimeDistributed(Dense(2, activation='linear', kernel_initializer='zero'))(x)
+    x = TimeDistributed(Dense(2, activation='softmax', kernel_initializer='zero'))(x)
     model_final = Model(inputs=[model_cnn.input, roi_input], outputs=x)
     opt = Adam(lr=0.0001)
     model_final.compile(
@@ -381,7 +306,7 @@ def rois_pack_up(ss_results, gt_values, rois_count_per_img):
 
 
 def process_image_and_rois(train_images, train_labels, ss_results, gt_values, image_out):
-    max_rois_per_batch = 32
+    max_rois_per_batch = 64
     resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
     resized = resized.reshape((224, 224, 3))
     rois, labels, skip = rois_pack_up(ss_results, gt_values, rois_count_per_img=64)
@@ -633,6 +558,6 @@ def CheckBatch(trainFast=True):
 # CheckBatch()
 # Activate_GPU()
 # batch_test()
-train()
-# build_model()
+# train()
+build_model()
 # data_generator()
