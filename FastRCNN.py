@@ -185,15 +185,16 @@ def test_model(image, roi, model, file_name):
                 cv2.LINE_AA
             )
         else:
-            print(str(result[0, i, :]) + " " + "not plane")
-            image = cv2.rectangle(
-                image,
-                (x1, y1),
-                (x2, y2),
-                (255, 0, 0),
-                1,
-                cv2.LINE_AA
-            )
+            # print(str(result[0, i, :]) + " " + "not plane")
+            # image = cv2.rectangle(
+            #     image,
+            #     (x1, y1),
+            #     (x2, y2),
+            #     (255, 0, 0),
+            #     1,
+            #     cv2.LINE_AA
+            #
+            pass
     plt.figure()
     plt.imshow(image)
     plt.savefig("TestResults" + slash + file_name + "_result.jpg")
@@ -208,7 +209,7 @@ def batch_test():
         custom_objects={'RoiPoolingConv': RoiPoolingConv}
     )
     for e, i in enumerate(os.listdir(path)):
-        if i.startswith("airplane"):
+        if i.startswith("4"):
             image = cv2.imread(os.path.join(path, i))
             ss.setBaseImage(image)
             ss.switchToSelectiveSearchFast()
@@ -232,7 +233,7 @@ def batch_test():
                     y2 = float(y2) / 256
                 rois_list.append([x1, y1, x2, y2])
             length = len(rois_list)
-            while len(rois_list) < 32:
+            while len(rois_list) < 64:
                 index = random.randint(0, length - 1)
                 rois_list.append(rois_list[index])
             roi = np.array(rois_list, dtype='float32').reshape((1, -1, 4))
@@ -556,8 +557,8 @@ def CheckBatch(trainFast=True):
 
 
 # CheckBatch()
-# Activate_GPU()
-# batch_test()
-train()
+Activate_GPU()
+batch_test()
+# train()
 # build_model()
 # data_generator()
