@@ -1,8 +1,14 @@
 import os
-
 from PIL import Image
 
 
+# region 介绍
+# 这个文件是公司项目相关数据的工具类
+# endregion
+
+
+# 把机器人采集到的大图切成小图
+# 不然要识别的目标全图缩放以后连一个像素都不到
 def cut_image(img):
     width, height = img.size
     item_width = int(width / 4)
@@ -17,6 +23,7 @@ def cut_image(img):
     return img_list
 
 
+# 把切好的图存起来
 def save_images(img_list, src_name, save_path):
     src_name = src_name.split('.')[0]
     index = 1
@@ -25,9 +32,12 @@ def save_images(img_list, src_name, save_path):
         index += 1
 
 
-raw_path = "ProcessedData\\SSR_RAW\\"
-split_path = "ProcessedData\\SSR_SPLIT\\"
-for e, i in enumerate(os.listdir(raw_path)):
-    image = Image.open(os.path.join(raw_path, i))
-    image_list = cut_image(image)
-    save_images(image_list, i, split_path)
+# 完整处理流程
+# 未完待续
+def full_process():
+    raw_path = "ProcessedData\\SSR_RAW\\"
+    split_path = "ProcessedData\\SSR_SPLIT\\"
+    for e, i in enumerate(os.listdir(raw_path)):
+        image = Image.open(os.path.join(raw_path, i))
+        image_list = cut_image(image)
+        save_images(image_list, i, split_path)
