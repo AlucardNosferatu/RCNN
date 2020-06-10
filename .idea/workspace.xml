@@ -21,10 +21,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae4666b1-d072-4357-911a-0d3d42fba99b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/SSR_Process.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AppMain.py" beforeDir="false" afterPath="$PROJECT_DIR$/AppMain.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RCNN.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RCNN_Linux.py" beforeDir="false" afterPath="$PROJECT_DIR$/RCNN_Linux.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/forVOC2007.py" beforeDir="false" afterPath="$PROJECT_DIR$/forVOC2007.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

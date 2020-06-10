@@ -14,6 +14,14 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
+# region 介绍
+# 这个文件是模型训练的主要文件，目前已修改为可在Win10和Linux运行的版本
+# 模型结构为单纯的图像分类+SS暴力提候选框
+# endregion
+
+
+# 这是用于检测运行操作系统的代码
+# 根据操作系统更换路径的分隔符号
 Linux = False
 if platform.system() == "Linux":
     Linux = True
@@ -24,10 +32,12 @@ else:
     print("Windows")
     slash = "\\"
 
+# 训练数据的图像和标签路径
 path = "ProcessedData" + slash + "Images"
 annotation = "ProcessedData" + slash + "Airplanes_Annotations"
 
 
+# 用于把1位输出（0或1，适用于sigmoid）转为独热码（[0,1]和[1,0]，适用于softmax）
 class OneHot(LabelBinarizer):
     def transform(self, y):
         Y = super().transform(y)
@@ -43,6 +53,8 @@ class OneHot(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
+# 测试函数，不会用于实际训练或预测
+# 用于检查查看SS候选框效果
 def show_SS_results():
     for e, i in enumerate(os.listdir(annotation)):
         if e < 10:
@@ -81,6 +93,7 @@ def show_SS_results():
     plt.show()
 
 
+# 计算候选框与GroundTruth框（即标签的目标框）交并比
 def get_iou(bb1, bb2):
     assert bb1["x1"] < bb1["x2"]
     assert bb1["y1"] < bb1["y2"]
@@ -101,6 +114,11 @@ def get_iou(bb1, bb2):
     return iou
 
 
+# 用于生成训练数据
+# SS提候选框与GT求交并比
+# 交并比大于0.7为正样本
+# 交并比小于0.3为负样本
+# 数据会保存为pkl文件
 def data_generator():
     train_images = []
     train_labels = []
@@ -181,6 +199,8 @@ def data_generator():
     return X_new, y_new
 
 
+# 读取已经生成的数据文件
+# 读出格式为numpy矩阵
 def data_loader():
     TI_PKL = open("ProcessedData" + slash + "train_images_cnn.pkl", "rb")
     TL_PKL = open("ProcessedData" + slash + "train_labels_cnn.pkl", "rb")
@@ -193,6 +213,9 @@ def data_loader():
     return X_new, y_new
 
 
+# 训练模型的函数
+# NewModel为True会覆盖已有训练结果生成新模型
+# GenData会生成新数据包（PKL）覆盖旧数据包
 def train(NewModel=False, GenData=False):
     if NewModel:
         vgg_model = tf.keras.applications.VGG16(weights="imagenet", include_top=True)
@@ -271,6 +294,10 @@ def train(NewModel=False, GenData=False):
     plt.savefig("chart loss.png")
 
 
+# 测试函数，不会用于实际训练
+# 用于单独测试CNN分类器性能
+# 给定已经裁切好的目标图像
+# 模型输出目标图像的分类概率
 def test_model_cl():
     model_final = tf.keras.models.load_model("TrainedModels" + slash + "RCNN.h5")
     x_new, y_new = data_loader()
@@ -290,6 +317,9 @@ def test_model_cl():
         plt.show()
 
 
+# 测试函数，用于呈现完整的识别流程
+# 分类判别采用绝对阈值判别
+# 绝对阈值为0.65
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model_loaded = tf.keras.models.load_model("TrainedModels" + slash + "RCNN.h5")
@@ -319,12 +349,14 @@ def test_model_od():
             plt.show()
 
 
+# 激活GPU显存增长模式
+# 如果CUDA报错切换使用该函数试试
+# 可能造成内存碎片
 def Activate_GPU():
     gpu_list = tf.config.experimental.list_physical_devices(device_type="GPU")
     print(gpu_list)
     for gpu in gpu_list:
         tf.config.experimental.set_memory_growth(gpu, True)
-
 
 # Activate_GPU()
 # train()

@@ -1,5 +1,5 @@
-from RCNN import path, train
 from forVOC2007 import transfer_model_train, data_generator
+from RCNN import path, train
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
@@ -10,6 +10,13 @@ import cv2
 import os
 
 
+# region 介绍
+# 这个文件用于测试TF Serving和模型时间性能
+# 模型结构为单纯的图像分类+SS暴力提候选框
+# endregion
+
+
+# 测试模型各个环节的时间性能
 def time_test(model_path="TrainedModels\\RCNN.h5", file_path=path):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model_load_start = datetime.datetime.now()
@@ -78,6 +85,7 @@ def time_test(model_path="TrainedModels\\RCNN.h5", file_path=path):
         plt.close()
 
 
+# 将模型导出为TF Serving可用格式
 def ExportModel():
     model_path = "TrainedModels\\RCNN.h5"
     model = tf.keras.models.load_model(model_path)
@@ -96,6 +104,9 @@ def ExportModel():
     builder.save()
 
 
+# TF Serving客户端
+# 内含SS
+# 500个候选目标预测时间：4分48秒
 def TFS_Client():
     server_url = 'http://134.134.50.135:8521/v1/models/rcnn:predict'
     image_url = 'ProcessedData\\Images\\428452.jpg'
@@ -139,10 +150,9 @@ def TFS_Client():
     plt.imshow(img_out)
     plt.show()
 
-
 # train()
 # ExportModel()
-TFS_Client()
+# TFS_Client()
 # time_test(model_path="TrainedModels\\RCNN-VOC2007.h5", file_path="ProcessedData\\VOC2007_JPG")
 # transfer_model_train()
 # data_generator()

@@ -1,22 +1,26 @@
 import os
-import pickle
-import xml.etree.ElementTree as ElTr
-
 import cv2
+import pickle
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import xml.etree.ElementTree as ElTr
+from tqdm import tqdm
+from RCNN import get_iou
 from tensorflow.keras import Model
-from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
-from tqdm import tqdm
+from tensorflow.keras.callbacks import ModelCheckpoint
 
-from RCNN import get_iou
+# region 介绍
+# 这个文件是迁移训练VOC2007数据集的测试程序
+# 模型结构为单纯的图像分类+SS暴力提候选框
+# endregion
+
 
 path = "ProcessedData\\VOC2007_JPG"
 annotation = "ProcessedData\\VOC2007_XML"
-
+# VOC2007数据集的字符串格式分类标签
 labels_dict = {
     "aeroplane": 1,
     "bicycle": 2,
@@ -41,6 +45,7 @@ labels_dict = {
 }
 
 
+# 从单个VOC格式的XML标签文件中获取多个目标对象
 def get_objects(file):
     tree = ElTr.parse(file)
     root = tree.getroot()
@@ -50,6 +55,7 @@ def get_objects(file):
     return objects
 
 
+# 用于生成训练数据
 def data_generator():
     file_size = 100
     train_images = []
@@ -155,6 +161,7 @@ def data_generator():
     tl_pkl.close()
 
 
+# 读取已生成的训练数据
 def data_loader(show=False, balance=False):
     train_images = []
     train_labels = []
@@ -196,6 +203,7 @@ def data_loader(show=False, balance=False):
     return x_new, y_new
 
 
+# 生成新的模型（输出为21（20种目标+1背景）维度softmax）并保存到本地
 def transfer_model_build():
     model_loaded = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     x = model_loaded.layers[21].output
@@ -211,6 +219,7 @@ def transfer_model_build():
     model_final.save("TrainedModels\\RCNN-VOC2007.h5")
 
 
+# 训练模型
 def transfer_model_train():
     model_final = tf.keras.models.load_model("TrainedModels\\RCNN-VOC2007.h5")
     x_new, y_new = data_loader(False, True)

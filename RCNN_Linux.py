@@ -13,8 +13,19 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 
+# region 介绍
+# 这个文件是用于服务器训练的程序，目前已可用RCNN.py替代
+# 模型结构为单纯的图像分类+SS暴力提候选框
+# endregion
 
-class MyLabelBinarizer(LabelBinarizer):
+
+# 训练数据的图像和标签路径
+path = "ProcessedData/Images"
+annotation = "ProcessedData/Airplanes_Annotations"
+
+
+# 用于把1位输出（0或1，适用于sigmoid）转为独热码（[0,1]和[1,0]，适用于softmax）
+class OneHot(LabelBinarizer):
     def transform(self, y):
         Y = super().transform(y)
         if self.y_type_ == 'binary':
@@ -29,48 +40,7 @@ class MyLabelBinarizer(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
-path = "ProcessedData/Images"
-annot = "ProcessedData/Airplanes_Annotations"
-
-
-def demo():
-    for e, i in enumerate(os.listdir(annot)):
-        if e < 10:
-            filename = i.split(".")[0] + ".jpg"
-            img = cv2.imread(os.path.join(path, filename))
-            path_instance = os.path.join(annot, i)
-            f = open(path_instance)
-            df = pd.read_csv(f)
-            f.close()
-            plt.imshow(img)
-            plt.show()
-            for row in df.iterrows():
-                x1 = int(row[1][0].split(" ")[0])
-                y1 = int(row[1][0].split(" ")[1])
-                x2 = int(row[1][0].split(" ")[2])
-                y2 = int(row[1][0].split(" ")[3])
-                cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
-            plt.figure()
-            plt.imshow(img)
-            plt.show()
-            break
-    cv2.setUseOptimized(True);
-    ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    im = cv2.imread(os.path.join(path, "42850.jpg"))
-    ss.setBaseImage(im)
-    ss.switchToSelectiveSearchFast()
-    rects = ss.process()
-    imOut = im.copy()
-    for i, rect in (enumerate(rects)):
-        x, y, w, h = rect
-        #     print(x,y,w,h)
-        #     imOut = imOut[x:x+w,y:y+h]
-        cv2.rectangle(imOut, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
-    # plt.figure()
-    plt.imshow(imOut)
-    plt.show()
-
-
+# 计算候选框与GroundTruth框（即标签的目标框）交并比
 def get_iou(bb1, bb2):
     assert bb1['x1'] < bb1['x2']
     assert bb1['y1'] < bb1['y2']
@@ -91,11 +61,16 @@ def get_iou(bb1, bb2):
     return iou
 
 
+# 用于生成训练数据
+# SS提候选框与GT求交并比
+# 交并比大于0.7为正样本
+# 交并比小于0.3为负样本
+# 数据会保存为pkl文件
 def data_generator():
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    for e, i in enumerate(os.listdir(annot)):
+    for e, i in enumerate(os.listdir(annotation)):
         # 对每一个标记文件（csv）进行操作
         try:
             if i.startswith("airplane"):
@@ -103,7 +78,7 @@ def data_generator():
                 filename = i.split(".")[0] + ".jpg"
                 print(e, filename)
                 image = cv2.imread(os.path.join(path, filename))
-                df = pd.read_csv(os.path.join(annot, i))
+                df = pd.read_csv(os.path.join(annotation, i))
                 gtvalues = []
                 for row in df.iterrows():
                     x1 = int(row[1][0].split(" ")[0])
@@ -171,6 +146,8 @@ def data_generator():
     return X_new, y_new
 
 
+# 读取已经生成的数据文件
+# 读出格式为numpy矩阵
 def data_loader():
     TI_PKL = open('ProcessedData/train_images_cnn.pkl', 'rb')
     TL_PKL = open('ProcessedData/train_labels_cnn.pkl', 'rb')
@@ -183,6 +160,9 @@ def data_loader():
     return X_new, y_new
 
 
+# 训练模型的函数
+# NewModel为True会覆盖已有训练结果生成新模型
+# GenData会生成新数据包（PKL）覆盖旧数据包
 def train(NewModel=False, GenData=False):
     if NewModel:
         vgg_model = tf.keras.applications.VGG16(weights='imagenet', include_top=True)
@@ -205,7 +185,7 @@ def train(NewModel=False, GenData=False):
     else:
         x_new, y_new = data_loader()
 
-    lenc = MyLabelBinarizer()
+    lenc = OneHot()
     y = lenc.fit_transform(y_new)
     x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.5)
     trdata = ImageDataGenerator(
@@ -261,10 +241,14 @@ def train(NewModel=False, GenData=False):
     plt.savefig('chart loss.png')
 
 
+# 测试函数，不会用于实际训练
+# 用于单独测试CNN分类器性能
+# 给定已经裁切好的目标图像
+# 模型输出目标图像的分类概率
 def test_model_cl():
     model_final = tf.keras.models.load_model("TrainedModels/RCNN.h5")
     x_new, y_new = data_loader()
-    lenc = MyLabelBinarizer()
+    lenc = OneHot()
     y = lenc.fit_transform(y_new)
     x_train, x_test, y_train, y_test = train_test_split(x_new, y, test_size=0.10)
     for test in x_test:
@@ -280,6 +264,9 @@ def test_model_cl():
         plt.show()
 
 
+# 测试函数，用于呈现完整的识别流程
+# 分类判别采用绝对阈值判别
+# 绝对阈值为0.65
 def test_model_od():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model_loaded = tf.keras.models.load_model("TrainedModels/RCNN.h5")
@@ -309,12 +296,14 @@ def test_model_od():
             plt.show()
 
 
+# 激活GPU显存增长模式
+# 如果CUDA报错切换使用该函数试试
+# 可能造成内存碎片
 def Activate_GPU():
     gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
     print(gpu_list)
     for gpu in gpu_list:
         tf.config.experimental.set_memory_growth(gpu, True)
-
 
 # Activate_GPU()
 # train()
