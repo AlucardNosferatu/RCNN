@@ -326,5 +326,5 @@ def Activate_GPU():
         tf.config.experimental.set_memory_growth(gpu, True)
 
 
-Activate_GPU()
-train()
+# Activate_GPU()
+# train()
