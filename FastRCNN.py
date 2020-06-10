@@ -1,43 +1,50 @@
 import os
-import pickle
-import platform
-import random
-
 import cv2
-import matplotlib.pyplot as plt
+import pickle
+import random
+import platform
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn.preprocessing import LabelBinarizer
+import matplotlib.pyplot as plt
 from tensorflow.keras import Model
-from tensorflow.keras.initializers import RandomNormal
-from tensorflow.keras.layers import Input, Dense, Flatten, TimeDistributed, Conv2D, MaxPooling2D
+from ROI_Pooling import RoiPoolingConv
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
-from tensorflow.python.keras.applications.vgg16 import preprocess_input
+from sklearn.preprocessing import LabelBinarizer
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.layers import Input, Dense, Flatten, TimeDistributed
 
-from ROI_Pooling import RoiPoolingConv
+
+# region 介绍
+# 这个文件是模型训练的主要文件，目前已修改为可在Win10和Linux运行的版本
+# 模型结构为带有ROI池化的CNN分类器+SS暴力提候选框
+# endregion
 
 
+# 用于检测运行的操作系统
 def get_slash():
-    linux = False
+    is_linux = False
     if platform.system() == "Linux":
-        linux = True
-    if linux:
+        is_linux = True
+    if is_linux:
         print("Linux")
         sl = "/"
     else:
         print("Windows")
         sl = "\\"
-    return sl, linux
+    return sl, is_linux
 
 
 slash, linux = get_slash()
 
+# 设置训练epoch和batch_size
 EP = 100
 BS = 2
 
 
+# 1位转独热码
 class OneHot(LabelBinarizer):
     def transform(self, y):
         Y = super().transform(y)
@@ -53,10 +60,12 @@ class OneHot(LabelBinarizer):
             return super().inverse_transform(Y, threshold)
 
 
+# 训练数据的图片和标签文件
 path = "ProcessedData" + slash + "Images"
 annotation = "ProcessedData" + slash + "Airplanes_Annotations"
 
 
+# 计算交并比
 def get_iou(bb1, bb2):
     assert bb1['x1'] < bb1['x2']
     assert bb1['y1'] < bb1['y2']
@@ -77,6 +86,13 @@ def get_iou(bb1, bb2):
     return iou
 
 
+# 搭建并保存模型：
+# ↓VGG16到展平层之前的部分+ROI输入（个数可变）
+# ↓ROI池化层
+# ↓展平层
+# ↓4096维全连接（抄VGG16的展平后）
+# ↓4096维全连接（抄VGG16的展平后）
+# 2维全连接，softmax输出
 def build_model():
     pooled_square_size = 7
     roi_input = Input(shape=(None, 4), name="input_2")
@@ -125,28 +141,10 @@ def build_model():
     model_final.save("TrainedModels" + slash + "FastRCNN.h5")
 
 
-def prepare_test_data():
-    for e, i in enumerate(os.listdir(annotation)):
-        # 对每一个标记文件（csv）进行操作
-        if i.startswith("airplane_001"):
-            # 只有名称带airplane才是有目标的存在的样本
-            filename = i.split(".")[0] + ".jpg"
-            image = cv2.imread(os.path.join(path, filename))
-            image = cv2.resize(image, (224, 224))
-            image = image.reshape((-1, 224, 224, 3))
-            image = tf.cast(image, tf.float32)
-            df = pd.read_csv(os.path.join(annotation, i))
-            gt_values = []
-            for row in df.iterrows():
-                x1 = float(int(row[1][0].split(" ")[0]) / 256)
-                y1 = float(int(row[1][0].split(" ")[1]) / 256)
-                x2 = float(int(row[1][0].split(" ")[2]) / 256)
-                y2 = float(int(row[1][0].split(" ")[3]) / 256)
-                gt_values.append([x1, y1, x2, y2])
-            roi = np.array(gt_values[0], dtype='float32').reshape((-1, 1, 4))
-    return image, roi
-
-
+# 测试模型（单图）
+# 已注释部分用于生成并保存ROI池化前和池化后的特征图
+# 会让你的测试变得非常非常慢
+# 慎用
 def test_model(image, roi, model, file_name):
     # fm_before_roip = Model(inputs=model.input, outputs=model.layers[13].output)
     # fm_after_roip = Model(inputs=model.input, outputs=model.layers[16].output)
@@ -202,6 +200,13 @@ def test_model(image, roi, model, file_name):
     plt.close()
 
 
+# 测试模型（批量）
+# 从SS生成的候选框种选出64个合理
+# （x1<x2且y1<y2）
+# （四指标均不超出图片边际）
+# （w和h大小均保证在特征图上大等于1个像素）
+# 的候选框，若选框个数不足
+# 会从已有选框复制补充
 def batch_test():
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model = tf.keras.models.load_model(
@@ -243,6 +248,10 @@ def batch_test():
             #     print(repr(e))
 
 
+# 对单图采集并打包roi
+# ss_results: SS生成的候选框
+# gt_values: GT框list
+# rois_count_per_img: 每张图要生成的roi共计个数
 def rois_pack_up(ss_results, gt_values, rois_count_per_img):
     skip = False
     smallest_fm_size = 14
@@ -306,6 +315,8 @@ def rois_pack_up(ss_results, gt_values, rois_count_per_img):
     return rois, labels, skip
 
 
+# 处理roi，对多于批处理个数的roi切分为不同batch
+# 负样本过多会跳过该图片的roi打包处理
 def process_image_and_rois(train_images, train_labels, ss_results, gt_values, image_out):
     max_rois_per_batch = 64
     resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
@@ -333,6 +344,7 @@ def process_image_and_rois(train_images, train_labels, ss_results, gt_values, im
     return train_images, train_labels
 
 
+# 从标签文件获取GT框列表、图片对象及SS的候选框集合
 def process_annotation_file(i):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     filename = i.split(".")[0] + ".jpg"
@@ -353,6 +365,7 @@ def process_annotation_file(i):
     return ss_results, image_out, gt_values
 
 
+# 生成训练数据
 def data_generator():
     train_images = []
     train_labels = []
@@ -376,6 +389,9 @@ def data_generator():
     return train_images, train_labels
 
 
+# 读取训练数据
+# trainFast: 设为True时用于端到端训练FastRCNN，设为False时用于训练VGG16做特征提取
+# shuffle: 对读到的数据做随机打乱
 def data_loader(trainFast=True, shuffle=True):
     if trainFast:
         ti_pkl = open("ProcessedData" + slash + 'train_images_fast.pkl', 'rb')
@@ -395,6 +411,7 @@ def data_loader(trainFast=True, shuffle=True):
     return train_images, train_labels
 
 
+# 训练
 def train(model_path="TrainedModels" + slash + "FastRCNN.h5", gen_data=False):
     model = tf.keras.models.load_model(
         model_path,
@@ -453,6 +470,8 @@ def train(model_path="TrainedModels" + slash + "FastRCNN.h5", gen_data=False):
         )
 
 
+# 测试函数，不在实际训练与预测过程中使用
+# 用于切分数据，检查出无效（导致ROI池化前选取面积为0）ROI
 def data_divider(data):
     data = list(data)
     db = data[:int(len(data) / 2)]
@@ -461,29 +480,34 @@ def data_divider(data):
     return data, db
 
 
-def data_sampler(X, y):
-    X, Xb = data_divider(X)
+# 测试函数，配合切分函数使用
+# 细分测试数据以查找出导致零特征面积的无效ROI
+def data_sampler(x, y):
+    x, xb = data_divider(x)
     y, yb = data_divider(y)
-    X, Xc = data_divider(X)
+    x, xc = data_divider(x)
     y, yc = data_divider(y)
-    X, Xd = data_divider(X)
+    x, xd = data_divider(x)
     y, yd = data_divider(y)
-    X, Xe = data_divider(X)
+    x, xe = data_divider(x)
     y, ye = data_divider(y)
-    X, Xf = data_divider(X)
+    x, xf = data_divider(x)
     y, yf = data_divider(y)
-    X, Xg = data_divider(X)
+    x, xg = data_divider(x)
     y, yg = data_divider(y)
-    X, Xh = data_divider(X)
+    x, xh = data_divider(x)
     y, yh = data_divider(y)
-    X, Xi = data_divider(X)
+    x, xi = data_divider(x)
     y, yi = data_divider(y)
-    X, Xj = data_divider(X)
+    x, xj = data_divider(x)
     y, yj = data_divider(y)
-    del Xb, yb, Xc, yc, Xd, yd, Xe, ye, Xf, yf, Xg, yg, Xh, yh, Xi, yi, Xj, yj
-    return X, y
+    del xb, yb, xc, yc, xd, yd, xe, ye, xf, yf, xg, yg, xh, yh, xi, yi, xj, yj
+    return x, y
 
 
+# 清洗掉可能导致零面积的无效ROI
+# 仅可用于ROI个数=1的情况
+# 现已集成到ROI打包函数内，不再使用
 def data_cleaner(X, y):
     th = 1 / 14
     i = 0
@@ -503,6 +527,7 @@ def data_cleaner(X, y):
     return X, y
 
 
+# 激活GPU显存使用增长模式
 def Activate_GPU():
     gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
     print(gpu_list)
@@ -510,6 +535,8 @@ def Activate_GPU():
         tf.config.experimental.set_memory_growth(gpu, True)
 
 
+# 检查生成的测试数据
+# 主要用于观察正负样本比例
 def CheckBatch(trainFast=True):
     x, y = data_loader(trainFast, shuffle=False)
     if trainFast:
