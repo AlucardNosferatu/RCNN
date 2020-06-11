@@ -18,8 +18,6 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 # endregion
 
 
-path = "ProcessedData\\VOC2007_JPG"
-annotation = "ProcessedData\\VOC2007_XML"
 # VOC2007数据集的字符串格式分类标签
 labels_dict = {
     "aeroplane": 1,
@@ -56,21 +54,27 @@ def get_objects(file):
 
 
 # 用于生成训练数据
-def data_generator():
+def data_generator(
+        postfix=".jpg",
+        ld=labels_dict,
+        annotation_path="ProcessedData\\VOC2007_XML",
+        pkl_path="ProcessedData\\VOC2007_PKL",
+        img_path="ProcessedData\\VOC2007_JPG"
+):
     file_size = 100
     train_images = []
     train_labels = []
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     file_count = 0
     max_file_count = 1000
-    for e, annotation_file in enumerate(os.listdir(annotation)):
+    for e, annotation_file in enumerate(os.listdir(annotation_path)):
         if file_count == max_file_count:
             break
-        filename = annotation_file.split(".")[0] + ".jpg"
-        image = cv2.imread(os.path.join(path, filename))
+        filename = annotation_file.split(".")[0] + postfix
+        image = cv2.imread(os.path.join(img_path, filename))
 
         # region extract coordinates from annotation file
-        objects = get_objects(os.path.join(annotation, annotation_file))
+        objects = get_objects(os.path.join(annotation_path, annotation_file))
         gt_values = []
         gt_labels = []
         for obj in objects:
@@ -120,7 +124,7 @@ def data_generator():
                         target_image = image_out[y:y + h, x:x + w]
                         resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                         train_images.append(resized)
-                        train_labels.append(labels_dict[gt_labels[index]])
+                        train_labels.append(ld[gt_labels[index]])
                         # 根据labels_dict把字符串（例如‘dog’）映射到大于0的自然数（‘dog’→12）
                         counter += 1
                 else:
@@ -139,8 +143,8 @@ def data_generator():
 
                 if len(train_labels) >= file_size:
                     print("save to file now.")
-                    ti_pkl = open('ProcessedData\\train_images_' + str(file_count) + '.pkl', 'wb')
-                    tl_pkl = open('ProcessedData\\train_labels_' + str(file_count) + '.pkl', 'wb')
+                    ti_pkl = open(pkl_path + '\\train_images_' + str(file_count) + '.pkl', 'wb')
+                    tl_pkl = open(pkl_path + '\\train_labels_' + str(file_count) + '.pkl', 'wb')
                     pickle.dump(train_images, ti_pkl)
                     pickle.dump(train_labels, tl_pkl)
                     ti_pkl.close()
@@ -153,8 +157,8 @@ def data_generator():
                     # print("inside")
                     flag = 1
 
-    ti_pkl = open('ProcessedData\\train_images_' + str(file_count) + '.pkl', 'wb')
-    tl_pkl = open('ProcessedData\\train_labels_' + str(file_count) + '.pkl', 'wb')
+    ti_pkl = open(pkl_path + '\\train_images_' + str(file_count) + '.pkl', 'wb')
+    tl_pkl = open(pkl_path + '\\train_labels_' + str(file_count) + '.pkl', 'wb')
     pickle.dump(train_images, ti_pkl)
     pickle.dump(train_labels, tl_pkl)
     ti_pkl.close()
@@ -162,14 +166,31 @@ def data_generator():
 
 
 # 读取已生成的训练数据
-def data_loader(show=False, balance=False):
+def data_loader(
+        file_count=1000,
+        pkl_path="ProcessedData\\VOC2007_PKL",
+        show=False,
+        balance=False,
+        classes_count=20
+):
     train_images = []
     train_labels = []
-    for i in tqdm(range(0, 1000)):
-        ti_pkl = open('ProcessedData\\train_images_' + str(i) + '.pkl', 'rb')
-        tl_pkl = open('ProcessedData\\train_labels_' + str(i) + '.pkl', 'rb')
-        train_images += pickle.load(ti_pkl)
-        train_labels += pickle.load(tl_pkl)
+    for i in tqdm(range(file_count)):
+        ti_pkl = open(pkl_path + '\\train_images_' + str(i) + '.pkl', 'rb')
+        tl_pkl = open(pkl_path + '\\train_labels_' + str(i) + '.pkl', 'rb')
+        ti_this = pickle.load(ti_pkl)
+        tl_this = pickle.load(tl_pkl)
+        if show:
+            for j in range(len(ti_this)):
+                print(tl_this[j])
+                if tl_this[j] != 0:
+                    image = ti_this[j]
+                    b, g, r = cv2.split(image)
+                    image_out = cv2.merge([r, g, b])
+                    plt.imshow(image_out)
+                    plt.show()
+        train_images += ti_this
+        train_labels += tl_this
         ti_pkl.close()
         tl_pkl.close()
     state = np.random.get_state()
@@ -182,21 +203,13 @@ def data_loader(show=False, balance=False):
             index = train_labels.index(0)
             del train_images[index]
             del train_labels[index]
-    if show:
-        for i in range(0, len(train_labels)):
-            print(train_labels[i])
-            if train_labels[i] != 0:
-                image_out = train_images[i]
-                b, g, r = cv2.split(image_out)
-                image_out = cv2.merge([r, g, b])
-                plt.imshow(image_out)
-                plt.show()
+
     x_new = np.array(train_images)
     for i in tqdm(range(0, len(train_labels))):
         n = train_labels[i]
         train_labels[i] = [0] * n
         train_labels[i] += [1]
-        n = 20 - n
+        n = classes_count - n
         if n:
             train_labels[i] += ([0] * n)
     y_new = np.array(train_labels)
@@ -204,10 +217,10 @@ def data_loader(show=False, balance=False):
 
 
 # 生成新的模型（输出为21（20种目标+1背景）维度softmax）并保存到本地
-def transfer_model_build():
+def transfer_model_build(classes_count=20, model_path="TrainedModels\\RCNN-VOC2007.h5"):
     model_loaded = tf.keras.models.load_model("TrainedModels\\RCNN.h5")
     x = model_loaded.layers[21].output
-    x = Dense(21, activation='softmax')(x)
+    x = Dense(classes_count + 1, activation='softmax')(x)
     model_final = Model(inputs=model_loaded.input, outputs=x)
     opt = Adam(lr=0.0001)
     model_final.compile(
@@ -216,27 +229,31 @@ def transfer_model_build():
         metrics=["accuracy"]
     )
     model_final.summary()
-    model_final.save("TrainedModels\\RCNN-VOC2007.h5")
+    model_final.save(model_path)
 
 
 # 训练模型
-def transfer_model_train():
-    model_final = tf.keras.models.load_model("TrainedModels\\RCNN-VOC2007.h5")
-    x_new, y_new = data_loader(False, True)
+def transfer_model_train(loaderDict=None, model_path="TrainedModels\\RCNN-VOC2007.h5"):
+    model_final = tf.keras.models.load_model(model_path)
+    if loaderDict:
+        fc = loaderDict[0]
+        pp = loaderDict[1]
+        show = loaderDict[2]
+        balance = loaderDict[3]
+        cc = loaderDict[4]
+        x_new, y_new = data_loader(file_count=fc, pkl_path=pp, show=show, balance=balance, classes_count=cc)
+    else:
+        x_new, y_new = data_loader()
     checkpoint = ModelCheckpoint(
-        "TrainedModels\\RCNN-VOC2007.h5",
-        monitor='val_loss',
+        model_path,
+        monitor='loss',
         verbose=1,
-        save_best_only=False,
+        save_best_only=True,
         save_weights_only=False,
         mode='auto',
         save_freq='epoch'
     )
     with tf.device('/gpu:0'):
-        gpu_list = tf.config.experimental.list_physical_devices(device_type='GPU')
-        print(gpu_list)
-        for gpu in gpu_list:
-            tf.config.experimental.set_memory_growth(gpu, True)
         model_final.fit(
             x_new,
             y_new,

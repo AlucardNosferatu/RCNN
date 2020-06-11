@@ -1,10 +1,23 @@
 import os
+import cv2
+import tensorflow as tf
 from PIL import Image
-
+from RCNN import test_model_od
+from forVOC2007 import data_generator, transfer_model_build, transfer_model_train
 
 # region 介绍
 # 这个文件是公司项目相关数据的工具类
 # endregion
+
+
+img_path = "ProcessedData\\SSR_SPLIT"
+annotation = "ProcessedData\\SSR_ANNOTATION"
+pkl_path = "ProcessedData\\SSR_PKL"
+labels_dict = {
+    "covered": 1,
+    "naked": 2,
+    "used": 3
+}
 
 
 # 把机器人采集到的大图切成小图
@@ -43,4 +56,27 @@ def full_process():
         save_images(image_list, i, split_path)
 
 
-full_process()
+def DG4SSR():
+    data_generator(
+        postfix='.png',
+        ld=labels_dict,
+        annotation_path=annotation,
+        pkl_path=pkl_path,
+        img_path=img_path
+    )
+
+
+def BM4SSR():
+    transfer_model_build(3, model_path="TrainedModels\\RCNN-SSR.h5")
+
+
+def TM4SSR():
+    loader_dict = [12, pkl_path, False, False, 3]
+    transfer_model_train(loaderDict=loader_dict, model_path="TrainedModels\\RCNN-SSR.h5")
+
+
+def TO4SSR():
+    test_model_od(model_path="TrainedModels\\RCNN-SSR.h5", start_with_str="DustCap", img_path=img_path)
+
+
+TO4SSR()

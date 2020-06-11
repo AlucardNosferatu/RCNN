@@ -37,12 +37,12 @@ path = "ProcessedData" + slash + "Images"
 annotation = "ProcessedData" + slash + "Airplanes_Annotations"
 
 
-# 用于把1位输出（0或1，适用于sigmoid）转为独热码（[0,1]和[1,0]，适用于softmax）
+# 用于把1位输出（0或1，适用于sigmoid）转为独热码（[1,0]和[0,1]，适用于softmax）
 class OneHot(LabelBinarizer):
     def transform(self, y):
         Y = super().transform(y)
         if self.y_type_ == "binary":
-            return np.hstack((Y, 1 - Y))
+            return np.hstack((1 - Y, Y))
         else:
             return Y
 
@@ -310,7 +310,7 @@ def test_model_cl():
         img = np.expand_dims(im, axis=0)
         out = model_final.predict(img)
 
-        if out[0][0] > out[0][1]:
+        if out[0][1] > out[0][0]:
             print(str(out) + " " + "plane")
         else:
             print(str(out) + " " + "not plane")
@@ -320,29 +320,28 @@ def test_model_cl():
 # 测试函数，用于呈现完整的识别流程
 # 分类判别采用绝对阈值判别
 # 绝对阈值为0.65
-def test_model_od():
+def test_model_od(model_path="TrainedModels" + slash + "RCNN.h5", start_with_str="4", img_path=path):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-    model_loaded = tf.keras.models.load_model("TrainedModels" + slash + "RCNN.h5")
+    model_loaded = tf.keras.models.load_model(model_path)
     z = 0
-    for e, i in enumerate(os.listdir(path)):
-        if i.startswith("4"):
+    for e, i in enumerate(os.listdir(img_path)):
+        if i.startswith(start_with_str):
             z += 1
-            img = cv2.imread(os.path.join(path, i))
+            img = cv2.imread(os.path.join(img_path, i))
             image_out = img.copy()
-
             # Selective Search will be replaced by ROI proposal
             ss.setBaseImage(img)
             ss.switchToSelectiveSearchFast()
             ss_results = ss.process()
-
-            for e, result in enumerate(ss_results):
-                if e < 2000:
+            for e_roi, result in enumerate(ss_results):
+                print(e_roi)
+                if e_roi < 2000:
                     x, y, w, h = result
                     target_image = image_out[y:y + h, x:x + w]
                     resized = cv2.resize(target_image, (224, 224), interpolation=cv2.INTER_AREA)
                     img = np.expand_dims(resized, axis=0)
                     out = model_loaded.predict(img)
-                    if out[0][0] > 0.65:
+                    if np.argmin(out[0]) != out.shape[1] - 1:
                         cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
             plt.figure()
             plt.imshow(image_out)
