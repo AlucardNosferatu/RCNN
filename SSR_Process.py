@@ -28,7 +28,7 @@ def save_images(img_list, src_name, save_path):
     src_name = src_name.split('.')[0]
     index = 1
     for img in img_list:
-        img.save(save_path + src_name + "_" + str(index) + '.png', 'PNG')
+        img.save(save_path + src_name.split('.')[0] + "_" + str(index) + '.png', 'PNG')
         index += 1
 
 
@@ -41,3 +41,6 @@ def full_process():
         image = Image.open(os.path.join(raw_path, i))
         image_list = cut_image(image)
         save_images(image_list, i, split_path)
+
+
+full_process()
