@@ -11,6 +11,7 @@ from forVOC2007 import data_generator, transfer_model_build, transfer_model_trai
 
 
 img_path = "ProcessedData\\SSR_SPLIT"
+img_path2 = "ProcessedData\\SSR_RAW"
 annotation = "ProcessedData\\SSR_ANNOTATION"
 pkl_path = "ProcessedData\\SSR_PKL"
 labels_dict = {
@@ -71,12 +72,12 @@ def BM4SSR():
 
 
 def TM4SSR():
-    loader_dict = [12, pkl_path, False, False, 3]
+    loader_dict = [12, pkl_path, False, True, 3]
     transfer_model_train(loaderDict=loader_dict, model_path="TrainedModels\\RCNN-SSR.h5")
 
 
 def TO4SSR():
-    test_model_od(model_path="TrainedModels\\RCNN-SSR.h5", start_with_str="DustCap", img_path=img_path)
+    test_model_od(model_path="TrainedModels\\RCNN-SSR.h5", start_with_str="DustCap", img_path=img_path2)
 
 
 TO4SSR()
