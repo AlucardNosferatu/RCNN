@@ -72,12 +72,14 @@ def BM4SSR():
 
 
 def TM4SSR():
-    loader_dict = [12, pkl_path, False, True, 3]
+    loader_dict = [14, pkl_path, False, True, 3]
     transfer_model_train(loaderDict=loader_dict, model_path="TrainedModels\\RCNN-SSR.h5")
 
 
 def TO4SSR():
-    test_model_od(model_path="TrainedModels\\RCNN-SSR.h5", start_with_str="DustCap", img_path=img_path2)
+    test_model_od(model_path="TrainedModels\\RCNN-SSR.h5", start_with_str="DustCap", img_path=img_path)
 
 
-TO4SSR()
+# TO4SSR()
+# TM4SSR()
+DG4SSR()

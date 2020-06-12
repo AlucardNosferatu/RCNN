@@ -335,7 +335,7 @@ def test_model_od(model_path="TrainedModels" + slash + "RCNN.h5", start_with_str
             ss.switchToSelectiveSearchFast()
             ss_results = ss.process()
             for e_roi, result in enumerate(ss_results):
-                if e_roi < 500:
+                if e_roi < 7000:
                     print("当前选框编号：", e_roi)
                     x, y, w, h = result
                     target_image = image_out[y:y + h, x:x + w]
@@ -345,7 +345,9 @@ def test_model_od(model_path="TrainedModels" + slash + "RCNN.h5", start_with_str
                     # print(out)
                     if np.argmax(out[0]) != 0:
                         print("预测结果：", np.argmax(out[0]))
-                        cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                        image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (0, 255, 0), 1, cv2.LINE_AA)
+                    # else:
+                    #     image_out = cv2.rectangle(image_out, (x, y), (x + w, y + h), (255, 0, 0), 1, cv2.LINE_AA)
             plt.figure()
             plt.imshow(image_out)
             plt.show()
