@@ -328,14 +328,14 @@ def test_model_od(model_path="TrainedModels" + slash + "RCNN.h5", start_with_str
         if i.startswith(start_with_str):
             z += 1
             img = cv2.imread(os.path.join(img_path, i))
-            img = cv2.resize(img, (1024, 768))
+            # img = cv2.resize(img, (1024, 768))
             image_out = img.copy()
             # Selective Search will be replaced by ROI proposal
             ss.setBaseImage(img)
             ss.switchToSelectiveSearchFast()
             ss_results = ss.process()
             for e_roi, result in enumerate(ss_results):
-                if e_roi < 7000:
+                if e_roi < 2000:
                     print("当前选框编号：", e_roi)
                     x, y, w, h = result
                     target_image = image_out[y:y + h, x:x + w]
