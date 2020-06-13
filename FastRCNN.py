@@ -1,3 +1,4 @@
+import datetime
 import os
 import cv2
 import pickle
@@ -41,7 +42,7 @@ slash, linux = get_slash()
 
 # 设置训练epoch和batch_size
 EP = 100
-BS = 2
+BS = 4
 
 
 # 1位转独热码
@@ -61,7 +62,7 @@ class OneHot(LabelBinarizer):
 
 
 # 训练数据的图片和标签文件
-path = "ProcessedData" + slash + "Images"
+img_path = "ProcessedData" + slash + "Images"
 annotation = "ProcessedData" + slash + "Airplanes_Annotations"
 
 
@@ -93,15 +94,19 @@ def get_iou(bb1, bb2):
 # ↓4096维全连接（抄VGG16的展平后）
 # ↓4096维全连接（抄VGG16的展平后）
 # 2维全连接，softmax输出
-def build_model():
-    pooled_square_size = 7
+def build_model(
+        classes_count=1,
+        model_path="TrainedModels" + slash + "FastRCNN.h5",
+        fm_layer_index=17,
+        pooled_square_size=7
+):
     roi_input = Input(shape=(None, 4), name="input_2")
     model_cnn = tf.keras.applications.VGG16(
         include_top=True,
         weights='imagenet'
     )
     model_cnn.trainable = True
-    x = model_cnn.layers[17].output
+    x = model_cnn.layers[fm_layer_index].output
     x = RoiPoolingConv(pooled_square_size)([x, roi_input])
     x = TimeDistributed(Flatten())(x)
     x = TimeDistributed(
@@ -122,7 +127,7 @@ def build_model():
             bias_regularizer=l2(0.0005)
         )
     )(x)
-    x = TimeDistributed(Dense(2, activation='softmax', kernel_initializer='zero'))(x)
+    x = TimeDistributed(Dense(classes_count + 1, activation='softmax', kernel_initializer='zero'))(x)
     model_final = Model(inputs=[model_cnn.input, roi_input], outputs=x)
     opt = Adam(lr=0.0001)
     model_final.compile(
@@ -138,7 +143,7 @@ def build_model():
             show_layer_names=False,
             rankdir='TB'
         )
-    model_final.save("TrainedModels" + slash + "FastRCNN.h5")
+    model_final.save(model_path)
 
 
 # 测试模型（单图）
@@ -172,7 +177,7 @@ def test_model(image, roi, model, file_name):
         y1 = int(roi[0][i][1] * 224)
         x2 = int(roi[0][i][2] * 224)
         y2 = int(roi[0][i][3] * 224)
-        if result[0, i, 1] > result[0, i, 0]:
+        if np.argmax(result[0, i, :]) != 0:
             print(str(result[0, i, :]) + " " + "plane")
             image = cv2.rectangle(
                 image,
@@ -207,35 +212,42 @@ def test_model(image, roi, model, file_name):
 # （w和h大小均保证在特征图上大等于1个像素）
 # 的候选框，若选框个数不足
 # 会从已有选框复制补充
-def batch_test():
+def batch_test(
+        model_path="TrainedModels" + slash + "FastRCNN.h5",
+        start_with="4",
+        path=img_path
+
+):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     model = tf.keras.models.load_model(
-        "TrainedModels" + slash + "FastRCNN.h5",
+        model_path,
         custom_objects={'RoiPoolingConv': RoiPoolingConv}
     )
     for e, i in enumerate(os.listdir(path)):
-        if i.startswith("4"):
+        if i.startswith(start_with):
             image = cv2.imread(os.path.join(path, i))
+            src_w = image.shape[1]
+            src_h = image.shape[0]
             ss.setBaseImage(image)
             ss.switchToSelectiveSearchFast()
             ss_results = ss.process()
             image = np.expand_dims(cv2.resize(image, (224, 224)), axis=0)
             rois_list = []
             for e_roi, result in enumerate(ss_results):
-                if len(rois_list) >= 32:
+                if len(rois_list) >= 64:
                     continue
                 x, y, w, h = result
-                if w <= (256 / 14) or h <= (256 / 14):
+                if w <= (src_w / 28) or h <= (src_h / 28):
                     continue
                 else:
                     x1 = x
                     y1 = y
                     x2 = x1 + w
                     y2 = y1 + h
-                    x1 = float(x1) / 256
-                    y1 = float(y1) / 256
-                    x2 = float(x2) / 256
-                    y2 = float(y2) / 256
+                    x1 = float(x1) / src_w
+                    y1 = float(y1) / src_h
+                    x2 = float(x2) / src_w
+                    y2 = float(y2) / src_h
                 rois_list.append([x1, y1, x2, y2])
             length = len(rois_list)
             while len(rois_list) < 64:
@@ -252,11 +264,21 @@ def batch_test():
 # ss_results: SS生成的候选框
 # gt_values: GT框list
 # rois_count_per_img: 每张图要生成的roi共计个数
-def rois_pack_up(ss_results, gt_values, rois_count_per_img):
+def rois_pack_up(
+        ss_results,
+        gt_values,
+        gt_labels,
+        rois_count_per_img,
+        src_img_width=256,
+        src_img_height=256,
+        smallest_fm_size=14,
+        classes_count=1,
+        check_image=None
+):
     skip = False
-    smallest_fm_size = 14
-    src_img_size = 256
-    th = src_img_size / smallest_fm_size
+
+    th_w = src_img_width / smallest_fm_size
+    th_h = src_img_height / smallest_fm_size
     rois = []
     labels = []
     count = 0
@@ -267,47 +289,75 @@ def rois_pack_up(ss_results, gt_values, rois_count_per_img):
         y1 = y
         x2 = x1 + w
         y2 = y1 + h
-        if abs(x1 - x2) <= th or abs(y1 - y2) <= th:
+
+        if check_image is not None:
+            # print("size_th: ", th_h, th_w)
+            # print("roi_size: ", h, w)
+            cv2.imshow("check 1_3", check_image[y1:y2, x1:x2])
+            cv2.waitKey()
+            cv2.destroyAllWindows()
+        this_label = 0
+        if abs(x1 - x2) <= th_w or abs(y1 - y2) <= th_h:
+            # print("Lower than size threshold, discarded.")
             continue
         iou = 0
-        for gt_val in gt_values:
-            temp = get_iou(gt_val, {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
+        for i in range(len(gt_values)):
+            temp = get_iou(gt_values[i], {"x1": x, "x2": x + w, "y1": y, "y2": y + h})
             if temp > iou:
                 iou = temp
+                if gt_labels is not None:
+                    this_label = gt_labels[i]
+        # if iou != 0:
+        #     print("IoU: ", iou)
+        if gt_labels is not None:
+            n = this_label
+            this_label = [0] * n
+            this_label += [1]
+            n = classes_count - n
+            if n:
+                this_label += ([0] * n)
+        else:
+            this_label = None
         if iou > 0.7:
-            labels.append([0, 1])
+            if this_label:
+                labels.append(this_label)
+            else:
+                labels.append([1, 0])
             rois.append(
                 [
-                    x1 / src_img_size,
-                    y1 / src_img_size,
-                    x2 / src_img_size,
-                    y2 / src_img_size
+                    x1 / src_img_width,
+                    y1 / src_img_height,
+                    x2 / src_img_width,
+                    y2 / src_img_height
                 ]
             )
             count += 1
         if false_count <= count:
             if iou < 0.3:
-                labels.append([1, 0])
+                if this_label:
+                    labels.append(this_label)
+                else:
+                    labels.append([0, 1])
                 rois.append(
                     [
-                        x1 / src_img_size,
-                        y1 / src_img_size,
-                        x2 / src_img_size,
-                        y2 / src_img_size
+                        x1 / src_img_width,
+                        y1 / src_img_height,
+                        x2 / src_img_width,
+                        y2 / src_img_height
                     ]
                 )
                 false_count += 1
     length = len(rois)
     print(length)
-    if len(labels) <= 0:
+    if len(labels) <= 1:
         skip = True
     else:
         for i in range(0, rois_count_per_img - length):
             index = random.randint(0, length - 1)
             rois.append(rois[index])
             labels.append(labels[index])
-        while len(rois) > rois_count_per_img and ([1, 0] in labels):
-            index = labels.index([1, 0])
+        while len(rois) > rois_count_per_img and (([1] + ([0] * classes_count)) in labels):
+            index = labels.index(([1] + ([0] * classes_count)))
             del labels[index]
             del rois[index]
         labels = labels[:rois_count_per_img]
@@ -317,17 +367,43 @@ def rois_pack_up(ss_results, gt_values, rois_count_per_img):
 
 # 处理roi，对多于批处理个数的roi切分为不同batch
 # 负样本过多会跳过该图片的roi打包处理
-def process_image_and_rois(train_images, train_labels, ss_results, gt_values, image_out):
+def process_image_and_rois(
+        train_images,
+        train_labels,
+        ss_results,
+        gt_values,
+        gt_labels,
+        image_out,
+        classes_count,
+        sfs,
+        checkImg=False
+):
+    save_dir = "TestResults" + slash + "FastRCNN" + slash + "train_batch"
     max_rois_per_batch = 64
+    w = image_out.shape[1]
+    h = image_out.shape[0]
     resized = cv2.resize(image_out, (224, 224), interpolation=cv2.INTER_AREA)
     resized = resized.reshape((224, 224, 3))
-    rois, labels, skip = rois_pack_up(ss_results, gt_values, rois_count_per_img=64)
+    check_image = None
+    if checkImg:
+        check_image = image_out
+    rois, labels, skip = rois_pack_up(
+        ss_results,
+        gt_values,
+        gt_labels,
+        rois_count_per_img=128,
+        src_img_width=w,
+        src_img_height=h,
+        smallest_fm_size=sfs,
+        classes_count=classes_count,
+        check_image=check_image
+    )
     if not skip:
         for i in range(0, int(len(rois) / max_rois_per_batch)):
             train_labels.append(
                 np.array(
                     labels[i * max_rois_per_batch:(i + 1) * max_rois_per_batch]
-                ).reshape(max_rois_per_batch, 2)
+                ).reshape(max_rois_per_batch, classes_count + 1)
             )
             train_images.append(
                 [
@@ -339,8 +415,13 @@ def process_image_and_rois(train_images, train_labels, ss_results, gt_values, im
             )
     else:
         print("Due to too many negative samples, skip this img")
+        plt.figure()
         plt.imshow(resized)
-        plt.show()
+        plt.savefig(
+            save_dir + slash + str(datetime.datetime.now()).replace(":", "") + ".jpg"
+        )
+        # plt.show()
+        plt.close()
     return train_images, train_labels
 
 
@@ -366,22 +447,39 @@ def process_annotation_file(i):
 
 
 # 生成训练数据
-def data_generator():
+def data_generator(
+        sfs=14,
+        classes_count=1,
+        start_with="airplane",
+        paf=process_annotation_file,
+        annotation_path=annotation,
+        ti_path="ProcessedData" + slash + 'train_images_fast.pkl',
+        tl_path="ProcessedData" + slash + 'train_labels_fast.pkl'
+):
     train_images = []
     train_labels = []
-    for e, i in enumerate(os.listdir(annotation)):
+    for e, i in enumerate(os.listdir(annotation_path)):
         # 对每一个标记文件（csv）进行操作
-        if i.startswith("airplane"):
-            ss_results, image_out, gt_values = process_annotation_file(i)
+        if i.startswith(start_with):
+            ss_results, image_out, gt_values = paf(i)
+            gt_labels = None
+            if type(gt_values) == dict:
+                gt_labels = gt_values['labels']
+                gt_values = gt_values['values']
             train_images, train_labels = process_image_and_rois(
                 train_images,
                 train_labels,
                 ss_results,
                 gt_values,
-                image_out
+                gt_labels,
+                image_out,
+                classes_count,
+                sfs=sfs,
+                # checkImg=("DustCap (1)_3" in i)
+                checkImg=False
             )
-    ti_pkl = open("ProcessedData" + slash + 'train_images_fast.pkl', 'wb')
-    tl_pkl = open("ProcessedData" + slash + 'train_labels_fast.pkl', 'wb')
+    ti_pkl = open(ti_path, 'wb')
+    tl_pkl = open(tl_path, 'wb')
     pickle.dump(train_images, ti_pkl)
     pickle.dump(train_labels, tl_pkl)
     ti_pkl.close()
@@ -412,7 +510,7 @@ def data_loader(trainFast=True, shuffle=True):
 
 
 # 训练
-def train(model_path="TrainedModels" + slash + "FastRCNN.h5", gen_data=False):
+def train(model_path="TrainedModels" + slash + "FastRCNN.h5", gen_data=False, dl=data_loader):
     model = tf.keras.models.load_model(
         model_path,
         custom_objects={'RoiPoolingConv': RoiPoolingConv}
@@ -436,7 +534,7 @@ def train(model_path="TrainedModels" + slash + "FastRCNN.h5", gen_data=False):
     if gen_data:
         x, y = data_generator()
     else:
-        x, y = data_loader()
+        x, y = dl()
 
     x_images = []
     x_rois = []
@@ -571,7 +669,7 @@ def CheckBatch(trainFast=True):
                     )
             plt.figure()
             plt.imshow(image)
-            plt.savefig("TestResults" + slash + "train_batch" + slash + str(i) + ".jpg")
+            plt.savefig("TestResults" + slash + "FastRCNN" + slash + "train_batch" + slash + str(i) + ".jpg")
             # plt.show()
             plt.close()
     else:
@@ -582,10 +680,9 @@ def CheckBatch(trainFast=True):
                 plt.show()
     print("Done")
 
-
 # CheckBatch()
-Activate_GPU()
-batch_test()
+# Activate_GPU()
+# batch_test()
 # train()
 # build_model()
 # data_generator()
