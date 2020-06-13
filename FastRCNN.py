@@ -294,12 +294,6 @@ def rois_pack_up(
         x2 = x1 + w
         y2 = y1 + h
 
-        if check_image is not None:
-            # print("size_th: ", th_h, th_w)
-            # print("roi_size: ", h, w)
-            cv2.imshow("check 1_3", check_image[y1:y2, x1:x2])
-            cv2.waitKey()
-            cv2.destroyAllWindows()
         this_label = 0
         if abs(x1 - x2) <= th_w or abs(y1 - y2) <= th_h:
             # print("Lower than size threshold, discarded.")
@@ -311,8 +305,15 @@ def rois_pack_up(
                 iou = temp
                 if gt_labels is not None:
                     this_label = gt_labels[i]
-        # if iou != 0:
-        #     print("IoU: ", iou)
+        if iou != 0:
+            print("IoU: ", iou)
+        if check_image is not None:
+            # print("size_th: ", th_h, th_w)
+            # print("roi_size: ", h, w)
+            if iou > 0.7:
+                cv2.imshow("CheckPos", check_image[y1:y2, x1:x2])
+                cv2.waitKey()
+                cv2.destroyAllWindows()
         if gt_labels is not None:
             n = this_label
             this_label = [0] * n
@@ -326,7 +327,7 @@ def rois_pack_up(
             if this_label:
                 labels.append(this_label)
             else:
-                labels.append([1, 0])
+                labels.append([0, 1])
             rois.append(
                 [
                     x1 / src_img_width,
@@ -336,12 +337,12 @@ def rois_pack_up(
                 ]
             )
             count += 1
-        if false_count <= count:
+        if false_count <= 3 * count:
             if iou < 0.3:
                 if this_label:
-                    labels.append(this_label)
+                    labels.append(([1] + ([0] * classes_count)))
                 else:
-                    labels.append([0, 1])
+                    labels.append([1, 0])
                 rois.append(
                     [
                         x1 / src_img_width,
@@ -395,7 +396,7 @@ def process_image_and_rois(
         ss_results,
         gt_values,
         gt_labels,
-        rois_count_per_img=128,
+        rois_count_per_img=256,
         src_img_width=w,
         src_img_height=h,
         smallest_fm_size=sfs,
@@ -434,7 +435,7 @@ def process_annotation_file(i):
     ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
     filename = i.split(".")[0] + ".jpg"
     print(filename)
-    image_out = cv2.imread(os.path.join(path, filename))
+    image_out = cv2.imread(os.path.join(img_path, filename))
     df = pd.read_csv(os.path.join(annotation, i))
     gt_values = []
     for row in df.iterrows():
@@ -479,7 +480,7 @@ def data_generator(
                 image_out,
                 classes_count,
                 sfs=sfs,
-                # checkImg=("DustCap (1)_3" in i)
+                # checkImg=("DustCap (1)_15" in i)
                 checkImg=False
             )
     ti_pkl = open(ti_path, 'wb')
@@ -639,8 +640,8 @@ def Activate_GPU():
 
 # 检查生成的测试数据
 # 主要用于观察正负样本比例
-def CheckBatch(trainFast=True):
-    x, y = data_loader(trainFast, shuffle=False)
+def CheckBatch(trainFast=True, dl=data_loader):
+    x, y = dl(trainFast, shuffle=False)
     if trainFast:
         for i in range(len(x)):
             print(i)
@@ -653,7 +654,7 @@ def CheckBatch(trainFast=True):
                 y1 = int(roi[1] * 224)
                 x2 = int(roi[2] * 224)
                 y2 = int(roi[3] * 224)
-                if y[i][j, 1]:
+                if y[i][j, 0]:
                     image = cv2.rectangle(
                         image,
                         (x1, y1),
@@ -663,6 +664,9 @@ def CheckBatch(trainFast=True):
                         cv2.LINE_AA
                     )
                 else:
+                    # cv2.imshow("temp", image[y1:y2, x1:x2, :])
+                    # cv2.waitKey()
+                    # cv2.destroyAllWindows()
                     image = cv2.rectangle(
                         image,
                         (x1, y1),
