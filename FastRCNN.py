@@ -156,6 +156,8 @@ def test_model(image, roi, model, file_name):
     # fm_b = fm_before_roip.predict([image / 255, roi])
     # fm_a = fm_after_roip.predict([image / 255, roi])
     result = model.predict([preprocess_input(image), roi])
+    result = result.reshape((-1, 4))
+    roi = roi.reshape((-1, 4))
     # plt.figure()
     # for i in tqdm(range(fm_b.shape[3])):
     #     plt.subplot(16, 32, i + 1)
@@ -171,14 +173,14 @@ def test_model(image, roi, model, file_name):
     #         plt.imshow(fm_a[0, i, :, :, j])
     #     plt.savefig("TestResults" + slash + file_name + "fm_a_" + str(i) + ".jpg")
     #     plt.close()
-    image = np.array(image).astype('uint8').reshape((224, 224, 3))
-    for i in range(result.shape[1]):
-        x1 = int(roi[0][i][0] * 224)
-        y1 = int(roi[0][i][1] * 224)
-        x2 = int(roi[0][i][2] * 224)
-        y2 = int(roi[0][i][3] * 224)
-        if np.argmax(result[0, i, :]) != 0:
-            print(str(result[0, i, :]) + " " + "plane")
+    image = np.array(image[0, :, :, :]).astype('uint8')
+    for i in range(result.shape[0]):
+        x1 = int(roi[i, 0] * 224)
+        y1 = int(roi[i, 1] * 224)
+        x2 = int(roi[i, 2] * 224)
+        y2 = int(roi[i, 3] * 224)
+        if np.argmax(result[i, :]) != 0:
+            print(str(result[i, :]) + " " + "plane")
             image = cv2.rectangle(
                 image,
                 (x1, y1),
@@ -231,11 +233,9 @@ def batch_test(
             ss.setBaseImage(image)
             ss.switchToSelectiveSearchFast()
             ss_results = ss.process()
-            image = np.expand_dims(cv2.resize(image, (224, 224)), axis=0)
+            image = cv2.resize(image, (224, 224))
             rois_list = []
             for e_roi, result in enumerate(ss_results):
-                if len(rois_list) >= 64:
-                    continue
                 x, y, w, h = result
                 if w <= (src_w / 28) or h <= (src_h / 28):
                     continue
@@ -253,7 +253,11 @@ def batch_test(
             while len(rois_list) < 64:
                 index = random.randint(0, length - 1)
                 rois_list.append(rois_list[index])
-            roi = np.array(rois_list, dtype='float32').reshape((1, -1, 4))
+            while len(rois_list) % 64 != 0:
+                index = random.randint(0, len(rois_list) - 1)
+                del rois_list[index]
+            roi = np.array(rois_list, dtype='float32').reshape((-1, 64, 4))
+            image = np.stack([image] * roi.shape[0])
             # try:
             test_model(image, roi, model, i)
             # except Exception as e:
