@@ -10,3 +10,4 @@ TrainedModels/FPN_Prototype.h5py/
 TrainedModels/FPN_RPN.h5py/
 TensorBoard/train/
 TensorBoard/validation/
+ProcessedData/SSR_ANNOTATION/
