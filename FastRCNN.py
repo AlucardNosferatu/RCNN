@@ -180,7 +180,7 @@ def test_model(image, roi, model, file_name):
         x2 = int(roi[i, 2] * 224)
         y2 = int(roi[i, 3] * 224)
         if np.argmax(result[i, :]) != 0:
-            print(str(result[i, :]) + " " + "plane")
+            # print(str(result[i, :]) + " " + "plane")
             image = cv2.rectangle(
                 image,
                 (x1, y1),
@@ -259,7 +259,10 @@ def batch_test(
             roi = np.array(rois_list, dtype='float32').reshape((-1, 64, 4))
             image = np.stack([image] * roi.shape[0])
             # try:
+            start = datetime.datetime.now()
             test_model(image, roi, model, i)
+            end = datetime.datetime.now()
+            print("耗时：", str(end - start))
             # except Exception as e:
             #     print(repr(e))
 

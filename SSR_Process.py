@@ -107,7 +107,7 @@ def TM4SSR():
 def TO4SSR():
     batch_test(
         model_path="TrainedModels" + slash + "FastRCNN-SSR.h5",
-        path=img_path3,
+        path=img_path,
         start_with="DustCap"
     )
 
@@ -118,6 +118,6 @@ def CB4SSR():
 
 # DG4SSR()
 # BM4SSR()
-TM4SSR()
+# TM4SSR()
 # TO4SSR()
-# CB4SSR()
+CB4SSR()
