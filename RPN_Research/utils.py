@@ -99,13 +99,15 @@ def draw_anchors(img_path, anchors, pad_size=50):
     return a4im
 
 
-def generate_anchors(base_width=16, base_height=16, ratios=[0.5, 1, 2],
+def generate_anchors(base_width=16, base_height=16, ratios=None,
                      scales=np.asarray([3, 6, 12])):
     """
     Generate anchor (reference) windows by enumerating aspect ratios X
     scales wrt a reference (0, 0, w_stride-1, h_stride-1) window.
     """
 
+    if ratios is None:
+        ratios = [0.5, 1, 2]
     base_anchor = np.array([1, 1, base_width, base_height]) - 1
     ratio_anchors = _ratio_enum(base_anchor, ratios)
     anchors = np.vstack([_scale_enum(ratio_anchors[i, :], scales)
